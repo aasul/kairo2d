@@ -1,0 +1,9 @@
+[game]
+title = "Kairo Breakout"
+width = 960
+height = 540
+vsync = true
+resizable = false
+
+[development]
+hot_reload = true

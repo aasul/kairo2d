@@ -1,0 +1,5 @@
+[game]
+title = "Hello, Kairo2D"
+width = 960
+height = 540
+vsync = true

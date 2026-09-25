@@ -1,0 +1,7 @@
+[game]
+title = "Scene Workshop"
+width = 960
+height = 600
+
+[save]
+identity = "kairo-example-scenes"

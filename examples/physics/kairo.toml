@@ -1,0 +1,5 @@
+[game]
+title = "Kairo2D - physics"
+width = 960
+height = 540
+vsync = true

@@ -1,0 +1,35 @@
+[package]
+name = "kairo-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "The Kairo2D game runner"
+
+[[bin]]
+name = "kairo"
+path = "src/main.rs"
+
+[dependencies]
+tempfile.workspace = true
+kairo-link.workspace = true
+gilrs.workspace = true
+serde_json.workspace = true
+kairo-project.workspace = true
+kairo-core.workspace = true
+kairo-assets.workspace = true
+kairo-render.workspace = true
+kairo-lua.workspace = true
+anyhow.workspace = true
+clap.workspace = true
+env_logger.workspace = true
+log.workspace = true
+notify.workspace = true
+pollster.workspace = true
+winit.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,20 @@
+name: Feature request
+description: Propose a focused improvement to the engine.
+title: "feature: "
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Gameplay or development need
+      description: What concrete problem is difficult with the current engine?
+    validations:
+      required: true
+  - type: textarea
+    id: api
+    attributes:
+      label: Proposed Lua API or workflow
+      description: A short example is more useful than a large list of abstractions.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and tradeoffs

@@ -1,0 +1,34 @@
+name: Bug report
+description: Report a reproducible runtime, editor or documentation problem.
+title: "bug: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Include expected behavior and the full error text, without secrets.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Provide a small Lua example and the exact command used.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, GPU/driver, audio device if relevant, rustc --version, and Kairo2D revision.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I checked VALIDATION.md and the documented 3.3 limitations.
+          required: true
+        - label: This is not a private vulnerability report.
+          required: true

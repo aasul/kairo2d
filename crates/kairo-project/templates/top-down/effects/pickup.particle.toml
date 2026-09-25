@@ -1,0 +1,14 @@
+[emitter]
+rate = 0.0
+lifetime = [0.2, 0.65]
+speed = [80.0, 220.0]
+direction = -1.5707963
+spread = 2.0
+gravity = 60.0
+drag = 0.8
+size = [7.0, 0.0]
+color_start = [0.9, 0.75, 0.3, 1.0]
+color_end = [0.7, 0.2, 0.08, 0.0]
+rotation = [0.0, 6.28]
+max_particles = 1024
+seed = 42

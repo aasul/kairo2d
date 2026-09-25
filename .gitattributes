@@ -1,0 +1,10 @@
+* text=auto
+*.rs text eol=lf
+*.lua text eol=lf
+*.toml text eol=lf
+*.wgsl text eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.png binary
+*.wav binary

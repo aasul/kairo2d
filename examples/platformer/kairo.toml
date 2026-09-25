@@ -1,0 +1,10 @@
+[game]
+title = "Platformer Starter"
+width = 960
+height = 600
+
+[save]
+identity = "kairo-example-platformer"
+
+[replay]
+enabled=true

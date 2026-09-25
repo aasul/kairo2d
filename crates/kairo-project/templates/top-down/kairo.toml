@@ -1,0 +1,15 @@
+[game]
+title = "Signal Yard"
+width = 960
+height = 600
+
+[save]
+identity = "kairo-example-top-down"
+
+[replay]
+enabled=true
+
+[physics]
+gravity_x=0.0
+gravity_y=0.0
+pixels_per_meter=100.0
