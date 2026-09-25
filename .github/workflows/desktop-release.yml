@@ -22,7 +22,7 @@ jobs:
         run: |
           if [ ! -f Cargo.lock ]; then cargo generate-lockfile; fi
           cargo metadata --locked --format-version 1 > /dev/null
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: resolved-lockfile
           path: Cargo.lock
@@ -72,7 +72,7 @@ jobs:
           cargo bundle-licenses --format json --output dependency-licenses.json
       - name: Package native editor and runtime
         run: python scripts/desktop_release.py
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: Kairo-${{ runner.os }}-${{ runner.arch }}
           path: |
