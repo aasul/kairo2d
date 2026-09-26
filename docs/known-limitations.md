@@ -13,7 +13,7 @@ acceptance. The version number is not a maturity guarantee.
 Link protocol 2 provides opt-in encrypted saved-project distribution and typed
 controls for up to four testers, not CRDT text editing, multiplayer game netcode,
 relay-backed matchmaking or an audited public service. Reconnect/authentication/
-shutdown/multi-client tests exist but did not run. Native DNS can outlast a socket
+shutdown/multi-client tests passed in the local Windows workspace run. Native DNS can outlast a socket
 timeout. Portable ASCII project paths and bounded transfers are required. Whole
 revisions can hitch while loading. Token possession grants trusted development
 participation; no per-person role system exists. Labels are local session labels.
@@ -40,16 +40,18 @@ Scenes now include a validated hierarchical node resource. Sprite, Camera2D,
 CanvasLayer, Text and Control nodes submit native drawing commands; supported body
 and collider nodes use Rapier; AudioSource nodes use the existing audio manager.
 This bridge is intentionally bounded: one centered rectangle/circle collider per
-body, no `Area2D` sensors, collision/trigger callbacks, capsule shape, positional
+body, no `Area2D` sensors, trigger enter/exit callbacks, capsule shape, positional
 audio, animated scene clip playback, scene UI focus/layout/text input, or automatic
 particle/tilemap instantiation. The scene editor has typed native properties,
 node-marker dragging, sprite/control/collider bounds and camera frame preview.
 Tree drag-to-reparent, rotation/scale gizmos, texture previews and live game
 rendering remain unimplemented. Its Undo/Redo history is local to the scene tab,
 not editor-wide.
-Attached Lua scripts have per-node state and
-ready/update/draw dispatch, but fixedUpdate and physics collision callbacks are not
-wired to a native fixed-step/event scheduler. The graph is not captured by Replay.
+Attached Lua scripts have per-node state and ready/update/draw dispatch. Contacts
+between scene-owned native bodies emit `collision` signals and invoke attached
+`onCollision(self, other)` once per frame from the latest fixed-step contact state.
+Trigger enter/exit, contact normals, contacts with manually created physics bodies,
+and fixedUpdate scheduling remain incomplete. The graph is not captured by Replay.
 Scenes still use immediate queued state changes, not visual fade/crossfade
 transitions. Scene callbacks are not rolled back after arbitrary side effects. Global
 game.update still runs when a pause scene is on top; the application must put paused
