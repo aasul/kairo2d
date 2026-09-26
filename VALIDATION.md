@@ -1,5 +1,35 @@
 # Validation - Kairo2D 3.4.0
 
+## Relay Dusk game follow-up — 2026-09-26
+
+`examples/relay-dusk` is a new playable project using the current public Lua
+runtime. It includes original generated sprites and sounds, a three-relay
+survival mission, upgrades, enemy waves, a boss, extraction, scoring and saves.
+The engine APIs are unchanged.
+
+| Command or check | Result on this Windows host |
+| --- | --- |
+| `cargo fmt --all -- --check` | Passed. |
+| `cargo check --workspace --all-targets --all-features` | Passed. |
+| `cargo clippy --workspace --all-targets --all-features -- -D warnings` | Passed. |
+| `cargo test --workspace --all-features` | Passed, including `relay_dusk_starts_fights_and_pauses_headlessly`. |
+| `cargo build --workspace` | Passed. |
+| `target/debug/kairo.exe check examples/relay-dusk` | Passed after the final Lua change. |
+| `scripts/source_audit.py` | Passed with bundled Python: 176 API entries, 22 PNGs and 15 WAVs. |
+| `scripts/generate_api_docs.py --check` | Passed. |
+| `scripts/smoke.py` | Passed for all 24 examples after the final Lua change. |
+| `scripts/package_smoke.py` | Passed for CLI creation, export and relocated headless execution. |
+| `target/debug/kairo.exe build examples/relay-dusk --output dist/RelayDusk` | Passed; created ignored `dist/RelayDusk/RelayDusk.exe` with its project data and release package marker. A no-argument graphical launch opened a responding `Relay Dusk` window. |
+| `git diff --check` | Passed. |
+| Visible runtime and editor launch | `kairo.exe run examples/relay-dusk --no-watch` and `kairo-editor.exe examples/relay-dusk` opened responding windows. The initial runtime launch exposed an audio playback restriction in `game.load`; music was moved into the first menu update. The development game window was then replaced with the responding standalone package window. |
+
+The integration test starts the mission, moves and fires for 180 frames, checks
+that drawing commands were produced, and pauses. It does not complete all three
+relays or the boss fight. Visible window startup does not establish visual quality
+or physical controller and audio-output behavior; those need hands-on acceptance.
+The host emitted non-fatal Vulkan validation-layer and D3D12 debug-interface
+warnings during the visible launch.
+
 ## Local Windows follow-up — 2026-09-26
 
 This section describes the current checkout after adding the validated node hierarchy,
