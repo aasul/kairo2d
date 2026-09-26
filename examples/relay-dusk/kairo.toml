@@ -1,0 +1,18 @@
+audio = { enabled = true }
+development = { hot_reload = true }
+micro = { enabled = true, width = 320, height = 180, integer_scaling = true, pixel_snap = true, palette = "kairo16" }
+replay = { enabled = false, seconds = 10.0, frequency = 30, memory_mib = 32 }
+[game]
+title = "Relay Dusk"
+width = 1280
+height = 720
+vsync = true
+resizable = true
+
+[save]
+identity = "kairo-example-relay-dusk"
+
+[physics]
+gravity_x = 0.0
+gravity_y = 0.0
+pixels_per_meter = 100.0
