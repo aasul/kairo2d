@@ -2478,7 +2478,7 @@ dependencies = [
 
 [[package]]
 name = "kairo-assets"
-version = "3.4.0"
+version = "3.5.0"
 dependencies = [
  "anyhow",
  "fontdue",
@@ -2492,7 +2492,7 @@ dependencies = [
 
 [[package]]
 name = "kairo-audio"
-version = "3.4.0"
+version = "3.5.0"
 dependencies = [
  "anyhow",
  "kairo-core",
@@ -2503,7 +2503,7 @@ dependencies = [
 
 [[package]]
 name = "kairo-cli"
-version = "3.4.0"
+version = "3.5.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -2525,7 +2525,7 @@ dependencies = [
 
 [[package]]
 name = "kairo-core"
-version = "3.4.0"
+version = "3.5.0"
 dependencies = [
  "anyhow",
  "getrandom 0.3.4",
@@ -2540,7 +2540,7 @@ dependencies = [
 
 [[package]]
 name = "kairo-editor"
-version = "3.4.0"
+version = "3.5.0"
 dependencies = [
  "anyhow",
  "eframe",
@@ -2563,7 +2563,7 @@ dependencies = [
 
 [[package]]
 name = "kairo-link"
-version = "3.4.0"
+version = "3.5.0"
 dependencies = [
  "anyhow",
  "getrandom 0.3.4",
@@ -2577,7 +2577,7 @@ dependencies = [
 
 [[package]]
 name = "kairo-lua"
-version = "3.4.0"
+version = "3.5.0"
 dependencies = [
  "anyhow",
  "glam",
@@ -2596,7 +2596,7 @@ dependencies = [
 
 [[package]]
 name = "kairo-project"
-version = "3.4.0"
+version = "3.5.0"
 dependencies = [
  "anyhow",
  "directories",
@@ -2611,7 +2611,7 @@ dependencies = [
 
 [[package]]
 name = "kairo-render"
-version = "3.4.0"
+version = "3.5.0"
 dependencies = [
  "anyhow",
  "bytemuck",
@@ -2630,7 +2630,7 @@ dependencies = [
 
 [[package]]
 name = "kairo-replay"
-version = "3.4.0"
+version = "3.5.0"
 dependencies = [
  "anyhow",
  "serde",
