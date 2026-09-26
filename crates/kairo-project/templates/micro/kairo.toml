@@ -1,0 +1,16 @@
+[game]
+title = "Kairo Micro - Starcatcher"
+width = 960
+height = 540
+vsync = true
+
+[save]
+identity = "kairo-example-micro"
+
+[micro]
+enabled = true
+width = 320
+height = 180
+integer_scaling = true
+pixel_snap = true
+palette = "kairo16"

@@ -1,0 +1,7 @@
+[game]
+title = "Particle Workshop"
+width = 960
+height = 600
+
+[save]
+identity = "kairo-example-particles"

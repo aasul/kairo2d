@@ -1,0 +1,882 @@
+[
+  {
+    "signature": "graphics.clear(r, g, b, a?)",
+    "snippet": "graphics.clear(0.07, 0.08, 0.10)",
+    "description": "Clear the frame; color channels are in 0..1."
+  },
+  {
+    "signature": "graphics.setColor(r, g, b, a?)",
+    "snippet": "graphics.setColor(1, 1, 1, 1)",
+    "description": "Set tint for following draw commands."
+  },
+  {
+    "signature": "graphics.rectangle(mode, x, y, width, height, lineWidth?)",
+    "snippet": "graphics.rectangle(\"fill\", 100, 100, 64, 64)",
+    "description": "Mode is fill or line; units are pixels."
+  },
+  {
+    "signature": "graphics.loadTexture(path)",
+    "snippet": "graphics.loadTexture(\"assets/sprite.png\")",
+    "description": "Decode and cache an image, returning an opaque handle."
+  },
+  {
+    "signature": "graphics.draw(texture, x, y)",
+    "snippet": "graphics.draw(texture, 100, 100)",
+    "description": "Draw with the current tint and camera."
+  },
+  {
+    "signature": "graphics.draw(texture, options)",
+    "snippet": "graphics.draw(texture, { x = 100, y = 100, rotation = 0, scale_x = 1, scale_y = 1 })",
+    "description": "Supports origin_x/origin_y and a source region."
+  },
+  {
+    "signature": "graphics.print(text, x, y, scale?)",
+    "snippet": "graphics.print(\"Hello Kairo\", 24, 24, 2)",
+    "description": "Draw built-in bitmap text."
+  },
+  {
+    "signature": "graphics.setCamera(x, y, zoom?, rotation?)",
+    "snippet": "graphics.setCamera(0, 0, 1, 0)",
+    "description": "Set camera transform for following draws."
+  },
+  {
+    "signature": "graphics.resetCamera()",
+    "snippet": "graphics.resetCamera()",
+    "description": "Restore the screen-space camera."
+  },
+  {
+    "signature": "graphics.screenToWorld(x, y)",
+    "snippet": "graphics.screenToWorld(0, 0)",
+    "description": "Convert screen coordinates using the current camera."
+  },
+  {
+    "signature": "graphics.worldToScreen(x, y)",
+    "snippet": "local sx, sy = graphics.worldToScreen(player.globalPosition.x, player.globalPosition.y)",
+    "description": "Convert world coordinates with the current camera and viewport."
+  },
+  {
+    "signature": "graphics.setViewport(x, y, width, height)",
+    "snippet": "graphics.setViewport(0, 0, 320, 180)",
+    "description": "Set a pixel viewport for following commands."
+  },
+  {
+    "signature": "graphics.resetViewport()",
+    "snippet": "graphics.resetViewport()",
+    "description": "Restore the full-window viewport."
+  },
+  {
+    "signature": "graphics.setScissor(x, y, width, height)",
+    "snippet": "graphics.setScissor(16, 16, 200, 120)",
+    "description": "Clip subsequent draws in window pixel coordinates."
+  },
+  {
+    "signature": "graphics.resetScissor()",
+    "snippet": "graphics.resetScissor()",
+    "description": "Disable scissor clipping."
+  },
+  {
+    "signature": "graphics.setFilter(texture, mode)",
+    "snippet": "graphics.setFilter(texture, \"nearest\")",
+    "description": "Choose nearest or linear sampling outside game.draw."
+  },
+  {
+    "signature": "graphics.releaseTexture(texture)",
+    "snippet": "graphics.releaseTexture(texture)",
+    "description": "Release outside game.draw; all copies of the cached resource handle become invalid."
+  },
+  {
+    "signature": "audio.isAvailable()",
+    "snippet": "audio.isAvailable()",
+    "description": "Check whether audio playback is available."
+  },
+  {
+    "signature": "audio.load(path, options?)",
+    "snippet": "audio.load(\"assets/sound.wav\")",
+    "description": "Decode/cache WAV or OGG; optional {bus=\"sfx\"} sets this wrapper default."
+  },
+  {
+    "signature": "audio.play(sound, options?)",
+    "snippet": "audio.play(sound, { volume = 0.5, looping = false })",
+    "description": "Voice options: volume, looping, bus, pitch (speed ratio), pan (-1..1). Playback is forbidden during candidate loading."
+  },
+  {
+    "signature": "audio.stop(voice)",
+    "snippet": "audio.stop(voice)",
+    "description": "Stop one playback voice."
+  },
+  {
+    "signature": "audio.stopAll()",
+    "snippet": "audio.stopAll()",
+    "description": "Stop all playback voices."
+  },
+  {
+    "signature": "audio.setVolume(voice, volume)",
+    "snippet": "audio.setVolume(voice, 0.5)",
+    "description": "Set voice volume in 0..1."
+  },
+  {
+    "signature": "audio.setMasterVolume(volume)",
+    "snippet": "audio.setMasterVolume(0.5)",
+    "description": "Set master volume in 0..1."
+  },
+  {
+    "signature": "audio.isPlaying(voice)",
+    "snippet": "audio.isPlaying(voice)",
+    "description": "Check whether a voice remains active."
+  },
+  {
+    "signature": "keyboard.isDown(key)",
+    "snippet": "keyboard.isDown(\"space\")",
+    "description": "Poll normalized physical key names."
+  },
+  {
+    "signature": "mouse.position()",
+    "snippet": "mouse.position()",
+    "description": "Return current mouse x/y in game-canvas pixels (logical in Micro)."
+  },
+  {
+    "signature": "mouse.isDown(button)",
+    "snippet": "mouse.isDown(1)",
+    "description": "Poll button 1=left, 2=right, 3=middle."
+  },
+  {
+    "signature": "window.close()",
+    "snippet": "window.close()",
+    "description": "Request a normal game-window shutdown."
+  },
+  {
+    "signature": "physics.newRectangle(kind, x, y, width, height)",
+    "snippet": "physics.newRectangle(\"dynamic\", 100, 100, 32, 32)",
+    "description": "Create a box body, positioned at its centre."
+  },
+  {
+    "signature": "physics.newCircle(kind, x, y, radius)",
+    "snippet": "physics.newCircle(\"dynamic\", 100, 100, 16)",
+    "description": "Create a circular body."
+  },
+  {
+    "signature": "physics.setGravity(x, y)",
+    "snippet": "physics.setGravity(0, 980)",
+    "description": "Set gravity in pixels per second squared."
+  },
+  {
+    "signature": "graphics.loadFont(path, size)",
+    "snippet": "local font = graphics.loadFont(\"assets/font.ttf\", 24)",
+    "description": "Load a TTF/OTF font and cache it by path and pixel size."
+  },
+  {
+    "signature": "graphics.print(font, text, x, y)",
+    "snippet": "graphics.print(font, \"Hello Kairo\", 20, 20)",
+    "description": "Queue text using a cached font; call from game.draw."
+  },
+  {
+    "signature": "graphics.measureText(font, text)",
+    "snippet": "local width, height = graphics.measureText(font, \"Hello\")",
+    "description": "Measure text with the same glyph layout used for drawing."
+  },
+  {
+    "signature": "graphics.releaseFont(font)",
+    "snippet": "graphics.releaseFont(font)",
+    "description": "Release a cached font outside game.draw; invalidates its handles."
+  },
+  {
+    "signature": "animation.new(texture, frames)",
+    "snippet": "local walk = animation.new(texture, {\n    {x = 0, y = 0, w = 16, h = 16, duration = 0.1},\n    {x = 16, y = 0, w = 16, h = 16, duration = 0.1}\n})",
+    "description": "Create an independent sprite-animation clock."
+  },
+  {
+    "signature": "animation.load(path)",
+    "snippet": "local walk = animation.load(\"assets/walk.anim.json\")",
+    "description": "Load animation metadata; its texture path is metadata-relative."
+  },
+  {
+    "signature": "tilemap.load(path)",
+    "snippet": "local map = tilemap.load(\"assets/world.tmj\")",
+    "description": "Load finite orthogonal Tiled JSON, not LDtk or TMX."
+  },
+  {
+    "signature": "gamepad.connected()",
+    "snippet": "local controllers = gamepad.connected()",
+    "description": "Get connected IDs; IDs are not necessarily contiguous."
+  },
+  {
+    "signature": "gamepad.name(id)",
+    "snippet": "local name = gamepad.name(id)",
+    "description": "Get a connected controller name, or nil."
+  },
+  {
+    "signature": "gamepad.isDown(id, button)",
+    "snippet": "local jump = gamepad.isDown(id, \"a\")",
+    "description": "Poll a controller button using Kairo names."
+  },
+  {
+    "signature": "gamepad.axis(id, axis)",
+    "snippet": "local x, y = gamepad.axis(id, \"left_stick\")",
+    "description": "Poll a stick with deadzone or trigger value; positive Y is down."
+  },
+  {
+    "signature": "save.read(name)",
+    "snippet": "local settings = save.read(\"settings.json\") or {volume = 0.8}",
+    "description": "Read JSON from the configured per-game save directory."
+  },
+  {
+    "signature": "save.write(name, value)",
+    "snippet": "save.write(\"settings.json\", {volume = 0.8})",
+    "description": "Write JSON atomically outside game.load/reload hooks."
+  },
+  {
+    "signature": "save.exists(name)",
+    "snippet": "local exists = save.exists(\"settings.json\")",
+    "description": "Check a scoped JSON save name."
+  },
+  {
+    "signature": "save.remove(name)",
+    "snippet": "local removed = save.remove(\"settings.json\")",
+    "description": "Remove one scoped save, outside game.load."
+  },
+  {
+    "signature": "profiler.show(enabled)",
+    "snippet": "profiler.show(true)",
+    "description": "Enable the runtime CPU/counter overlay."
+  },
+  {
+    "signature": "profiler.stats()",
+    "snippet": "local sample = profiler.stats()",
+    "description": "Read CPU phase timings and most recent render counters."
+  },
+  {
+    "signature": "random.seed(seed)",
+    "snippet": "random.seed(123)",
+    "description": "Seed Kairo reproducible RNG, not cryptographic randomness."
+  },
+  {
+    "signature": "random.float()",
+    "snippet": "local value = random.float()",
+    "description": "Get a replayable number in [0,1)."
+  },
+  {
+    "signature": "random.integer(min, max)",
+    "snippet": "local value = random.integer(1, 6)",
+    "description": "Get an inclusive replayable integer range."
+  },
+  {
+    "signature": "replay.register(name, state)",
+    "snippet": "replay.register(\"player\", player_state)",
+    "description": "Register a plain data-only table; clears snapshot history."
+  },
+  {
+    "signature": "replay.enable(enabled)",
+    "snippet": "replay.enable(true)",
+    "description": "Enable automatic bounded snapshot recording."
+  },
+  {
+    "signature": "replay.capture()",
+    "snippet": "replay.capture()",
+    "description": "Capture registered data, input, RNG and supported body state."
+  },
+  {
+    "signature": "replay.clear()",
+    "snippet": "replay.clear()",
+    "description": "Discard snapshot history."
+  },
+  {
+    "signature": "replay.stats()",
+    "snippet": "local history = replay.stats()",
+    "description": "Read frame, time, byte count and retained snapshot metadata."
+  },
+  {
+    "signature": "replay.rewind(seconds)",
+    "snippet": "replay.rewind(2.0)",
+    "description": "Queue rewind to an earlier snapshot and pause."
+  },
+  {
+    "signature": "replay.seek(index)",
+    "snippet": "replay.seek(1)",
+    "description": "Queue seek to a one-based snapshot index."
+  },
+  {
+    "signature": "replay.pause()",
+    "snippet": "replay.pause()",
+    "description": "Pause simulation at a frame boundary; drawing continues."
+  },
+  {
+    "signature": "replay.resume()",
+    "snippet": "replay.resume()",
+    "description": "Resume and discard history from the abandoned future."
+  },
+  {
+    "signature": "replay.step()",
+    "snippet": "replay.step()",
+    "description": "Advance one simulation tick while remaining paused."
+  },
+  {
+    "signature": "ui.panel(options)",
+    "snippet": "local panel = ui.panel({x = 20, y = 20, width = 260, height = 160, padding = 12})",
+    "description": "Create an automatically drawn retained UI root panel."
+  },
+  {
+    "signature": "ui.label(text, options)",
+    "snippet": "local label = panel:add(ui.label(\"Score: 0\"))",
+    "description": "Add a text widget to an existing panel."
+  },
+  {
+    "signature": "ui.button(text, callback, options)",
+    "snippet": "panel:add(ui.button(\"Start\", function() print(\"Start\") end))",
+    "description": "Add a pointer-operated retained button."
+  },
+  {
+    "signature": "ui.image(texture, options)",
+    "snippet": "panel:add(ui.image(texture, {width = 64, height = 64}))",
+    "description": "Draw a texture inside a UI layout."
+  },
+  {
+    "signature": "ui.progress(value, options)",
+    "snippet": "panel:add(ui.progress(0.5, {height = 16}))",
+    "description": "Add a progress bar clamped to 0..1."
+  },
+  {
+    "signature": "ui.setFont(font)",
+    "snippet": "ui.setFont(font)",
+    "description": "Choose the default retained UI font handle."
+  },
+  {
+    "signature": "ui.remove(widget)",
+    "snippet": "ui.remove(widget)",
+    "description": "Detach a UI widget from its parent/root list."
+  },
+  {
+    "signature": "ui.clear()",
+    "snippet": "ui.clear()",
+    "description": "Remove all retained UI roots and pending pointer state."
+  },
+  {
+    "signature": "ui.wantsMouse()",
+    "snippet": "local over_ui = ui.wantsMouse()",
+    "description": "Determine whether the pointer is inside a visible UI root."
+  },
+  {
+    "signature": "debugui.window(title, callback)",
+    "snippet": "debugui.window(\"Player\", function()\n    speed = debugui.slider(\"Speed\", speed, 0, 500)\nend)",
+    "description": "Queue a native development window inside game.debugUI only."
+  },
+  {
+    "signature": "debugui.text(text)",
+    "snippet": "debugui.text(\"Runtime controls\")",
+    "description": "Add text inside a debugui window."
+  },
+  {
+    "signature": "debugui.button(label)",
+    "snippet": "if debugui.button(\"Reset\") then speed = 120 end",
+    "description": "Read a queued button response from the previous native frame."
+  },
+  {
+    "signature": "debugui.checkbox(label, value)",
+    "snippet": "enabled = debugui.checkbox(\"Enabled\", enabled)",
+    "description": "Return the current queued checkbox value."
+  },
+  {
+    "signature": "debugui.slider(label, value, min, max)",
+    "snippet": "speed = debugui.slider(\"Speed\", speed, 0, 500)",
+    "description": "Return a finite range-clamped queued slider value."
+  },
+  {
+    "signature": "debugui.wantsMouse()",
+    "snippet": "local captured = debugui.wantsMouse()",
+    "description": "Read the previous native pointer-capture decision."
+  },
+  {
+    "signature": "window.getSize()",
+    "snippet": "local width, height = window.getSize()",
+    "description": "Get logical Micro dimensions or regular physical window dimensions."
+  },
+  {
+    "signature": "window.getPhysicalSize()",
+    "snippet": "local width, height = window.getPhysicalSize()",
+    "description": "Get physical window dimensions regardless of Micro mode."
+  },
+  {
+    "signature": "window.setSize(width, height)",
+    "snippet": "window.setSize(1280, 720)",
+    "description": "Queue a physical window-size request."
+  },
+  {
+    "signature": "window.setTitle(title)",
+    "snippet": "window.setTitle(\"My Kairo Game\")",
+    "description": "Queue a native window title change."
+  },
+  {
+    "signature": "window.setVsync(enabled)",
+    "snippet": "window.setVsync(true)",
+    "description": "Queue vsync configuration."
+  },
+  {
+    "signature": "timer.getDelta()",
+    "snippet": "local dt = timer.getDelta()",
+    "description": "Read the current clamped simulation delta."
+  },
+  {
+    "signature": "timer.getTime()",
+    "snippet": "local seconds = timer.getTime()",
+    "description": "Read current session simulation time."
+  },
+  {
+    "signature": "timer.getFPS()",
+    "snippet": "local fps = timer.getFPS()",
+    "description": "Read smoothed wall-frame FPS."
+  },
+  {
+    "signature": "filesystem.read(path)",
+    "snippet": "local text = filesystem.read(\"assets/data.txt\")",
+    "description": "Read a project-scoped file as a binary-safe Lua string."
+  },
+  {
+    "signature": "filesystem.exists(path)",
+    "snippet": "local present = filesystem.exists(\"assets/player.png\")",
+    "description": "Check a project-scoped path."
+  },
+  {
+    "signature": "filesystem.list(path)",
+    "snippet": "local names = filesystem.list(\"assets\")",
+    "description": "Return sorted project directory child names."
+  },
+  {
+    "signature": "assets.stats()",
+    "snippet": "local assets_used = assets.stats()",
+    "description": "Read texture/audio/body counts and decoded memory estimates."
+  },
+  {
+    "signature": "scene.new(name)",
+    "snippet": "local play = scene.new(\"play\")",
+    "description": "Create a scene table with a validated node graph and root; existing scene callbacks still work."
+  },
+  {
+    "signature": "scene.load(path)",
+    "snippet": "local level = scene.load(\"scenes/level.scene\")",
+    "description": "Load a version 1 JSON scene hierarchy from a project-relative .scene file."
+  },
+  {
+    "signature": "scene.createNode(scene, type, name)",
+    "snippet": "local world = level:createNode(\"Node2D\", \"World\")",
+    "description": "Create a typed child of the scene root and return a validated node reference."
+  },
+  {
+    "signature": "node:createChild(type, name)",
+    "snippet": "local player = world:createChild(\"Sprite\", \"Player\")",
+    "description": "Create an ordered child node; cycles, invalid names and stale references are rejected."
+  },
+  {
+    "signature": "node:setProperty(name, value)",
+    "snippet": "sprite:setProperty(\"texture\", \"assets/player.png\")",
+    "description": "Set a serialized node property; supported scene node types read native render, camera, physics and audio properties."
+  },
+  {
+    "signature": "node:getProperty(name)",
+    "snippet": "local velocity = player:getProperty(\"velocity\")",
+    "description": "Read a serialized property or nil; dynamic body velocity is updated after the physics step."
+  },
+  {
+    "signature": "node:removeProperty(name)",
+    "snippet": "sprite:removeProperty(\"texture\")",
+    "description": "Remove one node property; returns whether the property existed."
+  },
+  {
+    "signature": "node.position / node.globalPosition",
+    "snippet": "player.position = {x=100, y=200}; local x = player.globalPosition.x",
+    "description": "Set a local 2D position and read the cached position inherited from ancestors."
+  },
+  {
+    "signature": "node.rotation / node.scale / node.pivot",
+    "snippet": "player.rotation = math.rad(30); player.scale = {x=2, y=2}",
+    "description": "Edit finite local transforms; node.worldTransform exposes the resulting affine matrix."
+  },
+  {
+    "signature": "node:reparent(parent, index?)",
+    "snippet": "player:reparent(world, 1)",
+    "description": "Move a node under another parent at a 1-based sibling index; cycles are rejected."
+  },
+  {
+    "signature": "node:duplicate() / node:destroy()",
+    "snippet": "local copy = player:duplicate(); player:destroy()",
+    "description": "Copy or remove a subtree; stale node references always fail safely."
+  },
+  {
+    "signature": "node:on(event, callback)",
+    "snippet": "local token = player:on(\"hit\", function(amount) health = health - amount end)",
+    "description": "Subscribe to an event emitted by this node. The subscription is removed when the node is destroyed."
+  },
+  {
+    "signature": "node:emit(event, ...)",
+    "snippet": "player:emit(\"hit\", 10)",
+    "description": "Dispatch a node event synchronously, passing all supplied Lua values to subscribers."
+  },
+  {
+    "signature": "node:off(token)",
+    "snippet": "player:off(token)",
+    "description": "Disconnect a signal token. Returns false if it was already removed."
+  },
+  {
+    "signature": "Events.on(event, callback, owner?)",
+    "snippet": "local token = Events.on(\"round_end\", function() showScore() end, hud)",
+    "description": "Subscribe to a global event; optional node ownership disconnects automatically on destruction."
+  },
+  {
+    "signature": "Events.emit(event, ...)",
+    "snippet": "Events.emit(\"round_end\", score)",
+    "description": "Dispatch a global event synchronously. Subscriber changes during dispatch are safe."
+  },
+  {
+    "signature": "Events.off(token)",
+    "snippet": "Events.off(token)",
+    "description": "Disconnect a global or node signal token."
+  },
+  {
+    "signature": "scene.attachScript(scene, node, path)",
+    "snippet": "local state = level:attachScript(player, \"scripts/player.lua\")",
+    "description": "Attach a Lua module table with per-node state and explicit lifecycle callback registration."
+  },
+  {
+    "signature": "scene.register(scene)",
+    "snippet": "scene.register(play)",
+    "description": "Register one named scene. Duplicate names and invalid callbacks are errors."
+  },
+  {
+    "signature": "scene.switch(name)",
+    "snippet": "scene.switch(\"play\")",
+    "description": "Queue replacement of the scene stack by name or scene table at a callback boundary."
+  },
+  {
+    "signature": "scene.push(name)",
+    "snippet": "scene.push(\"pause\")",
+    "description": "Suspend the current top and push an overlay; the top alone receives updates/input."
+  },
+  {
+    "signature": "scene.pop()",
+    "snippet": "scene.pop()",
+    "description": "Pop and leave the top scene, then resume the previous one. Cannot pop the last scene."
+  },
+  {
+    "signature": "scene.reload()",
+    "snippet": "scene.reload()",
+    "description": "Leave and re-enter the current scene without reloading source or globals."
+  },
+  {
+    "signature": "scene.current()",
+    "snippet": "local name = scene.current()",
+    "description": "Current scene name, or nil. scene.shared holds ordinary persistent Lua data."
+  },
+  {
+    "signature": "scene.info()",
+    "snippet": "local info = scene.info()",
+    "description": "Registered names, current name and active stack as plain data."
+  },
+  {
+    "signature": "input.bind(name, binding)",
+    "snippet": "input.bind(\"jump\", {keyboard={\"space\"}, gamepad={\"a\"}})",
+    "description": "Bind a named action. Lua definitions override input.toml defaults."
+  },
+  {
+    "signature": "input.bindAxis(name, binding)",
+    "snippet": "input.bindAxis(\"move_x\", {negative={\"a\"},positive={\"d\"},gamepad_axis=\"left_x\",dead_zone=0.18})",
+    "description": "Define a digital/analog axis. Digital nonzero input takes precedence."
+  },
+  {
+    "signature": "input.action(name)",
+    "snippet": "if input.action(\"jump\") then end",
+    "description": "Held state for an existing action. Unknown names raise an error."
+  },
+  {
+    "signature": "input.held(name)",
+    "snippet": "if input.held(\"jump\") then end",
+    "description": "Alias for action; sampled once before game.update."
+  },
+  {
+    "signature": "input.pressed(name)",
+    "snippet": "if input.pressed(\"jump\") then end",
+    "description": "Pressed edge for this sampled frame. Poll in update, not raw key callbacks."
+  },
+  {
+    "signature": "input.released(name)",
+    "snippet": "if input.released(\"jump\") then end",
+    "description": "Released edge for this sampled frame."
+  },
+  {
+    "signature": "input.axis(name)",
+    "snippet": "local x = input.axis(\"move_x\")",
+    "description": "Named axis in -1..1. Trigger axes are nonnegative."
+  },
+  {
+    "signature": "input.load(path?)",
+    "snippet": "input.load(\"input.toml\")",
+    "description": "Read and validate a complete mapping file; replace bindings and clear cached edges."
+  },
+  {
+    "signature": "input.serialize()",
+    "snippet": "local text = input.serialize()",
+    "description": "Serialize current bindings to TOML. Does not write project files."
+  },
+  {
+    "signature": "input.apply(toml)",
+    "snippet": "input.apply([[\n[actions.jump]\nkeyboard=[\"space\"]\n]])",
+    "description": "Validate serialized mappings before replacement; invalid input retains previous bindings."
+  },
+  {
+    "signature": "inspector.expose(path, target, key, metadata?)",
+    "snippet": "inspector.expose(\"Player.speed\", player, \"speed\", {writable=true,min=0,max=500})",
+    "description": "Expose a chosen plain-table field. Read-only unless writable=true; no global enumeration."
+  },
+  {
+    "signature": "inspector.remove(path)",
+    "snippet": "inspector.remove(\"Player.speed\")",
+    "description": "Remove an exposed field."
+  },
+  {
+    "signature": "inspector.clear()",
+    "snippet": "inspector.clear()",
+    "description": "Remove all exposed fields without modifying game data."
+  },
+  {
+    "signature": "animator.new()",
+    "snippet": "local controller = animator.new()",
+    "description": "Create a Lua animation state machine using existing animation clips."
+  },
+  {
+    "signature": "particles.new(options)",
+    "snippet": "local sparks = particles.new({rate=0,lifetime={0.2,0.6},speed={80,220},gravity=200})",
+    "description": "Create a bounded native emitter, optionally with a texture handle."
+  },
+  {
+    "signature": "particles.load(path)",
+    "snippet": "local sparks = particles.load(\"effects/sparks.particle.toml\")",
+    "description": "Load native emitter configuration; optional image path is relative to the preset."
+  },
+  {
+    "signature": "audio.loadSound(path, options?)",
+    "snippet": "local sound = audio.loadSound(\"assets/hit.wav\", {bus=\"sfx\"})",
+    "description": "Alias of audio.load; resource caches decoded data, wrapper stores a default bus."
+  },
+  {
+    "signature": "audio.setBusVolume(bus, volume, fadeSeconds?)",
+    "snippet": "audio.setBusVolume(\"music\", 0.6, 0.2)",
+    "description": "Set master/music/sfx/ui volume in 0..1 with a fade of 0..30 seconds."
+  },
+  {
+    "signature": "audio.muteBus(bus, muted)",
+    "snippet": "audio.muteBus(\"sfx\", true)",
+    "description": "Mute without losing the remembered bus volume."
+  },
+  {
+    "signature": "audio.stopBus(bus)",
+    "snippet": "audio.stopBus(\"sfx\")",
+    "description": "Stop voices on a bus; master stops every voice."
+  },
+  {
+    "signature": "audio.mixer()",
+    "snippet": "local buses = audio.mixer()",
+    "description": "Bus names, target volumes, mute state and voice counts. Not peak metering."
+  },
+  {
+    "signature": "debug.drawPhysics(enabled)",
+    "snippet": "debug.drawPhysics(true)",
+    "description": "Development-only collider outlines and centers; sleeping bodies have a distinct tint."
+  },
+  {
+    "signature": "debug.drawBounds(enabled)",
+    "snippet": "debug.drawBounds(true)",
+    "description": "Bounded textured-sprite outline overlay, using the queued camera/viewport."
+  },
+  {
+    "signature": "debug.drawVelocities(enabled)",
+    "snippet": "debug.drawVelocities(true)",
+    "description": "Velocity vectors when physics debug drawing is enabled."
+  },
+  {
+    "signature": "debug.showProfiler(enabled)",
+    "snippet": "debug.showProfiler(true)",
+    "description": "Show/hide the measured CPU/render overlay when profile tools are enabled."
+  },
+  {
+    "signature": "replay.bookmark(label, note?)",
+    "snippet": "local id = replay.bookmark(\"Wall collision\", \"Retest from this state\")",
+    "description": "Pin a supported snapshot in memory: at most eight pins / 16 MiB. Development tools required."
+  },
+  {
+    "signature": "replay.getBookmarks()",
+    "snippet": "local marks = replay.getBookmarks()",
+    "description": "Metadata for current runtime pins. Snapshot bytes remain private to the runtime."
+  },
+  {
+    "signature": "prefab.spawn(name, overrides?)",
+    "snippet": "local coin = prefab.spawn(\"coin\", {x=100,y=200})",
+    "description": "Deep-copy prefabs/name.toml [defaults] and apply overrides; optional explicit Lua factory."
+  },
+  {
+    "signature": "prefab.instantiate(path, parent, overrides?)",
+    "snippet": "local enemy = prefab.instantiate(\"enemy\", level.root, {hp=50})",
+    "description": "Instantiate a hierarchical JSON prefab under a scene node with fresh IDs and optional root property overrides."
+  },
+  {
+    "signature": "localization.setLanguage(id)",
+    "snippet": "localization.setLanguage(\"fr\")",
+    "description": "Select a game locale from locales/id.json. Does not translate the editor."
+  },
+  {
+    "signature": "localization.setFallback(id)",
+    "snippet": "localization.setFallback(\"en\")",
+    "description": "Set the fallback locale."
+  },
+  {
+    "signature": "localization.getLanguage()",
+    "snippet": "local language = localization.getLanguage()",
+    "description": "Return the active game-language identifier."
+  },
+  {
+    "signature": "localization.reload()",
+    "snippet": "localization.reload()",
+    "description": "Clear the locale cache; subsequent lookups reread project files."
+  },
+  {
+    "signature": "localization.get(key, values?)",
+    "snippet": "local text = localization.get(\"score\", {value=10})",
+    "description": "Flat-key lookup with fallback and scalar {name} interpolation; returns missing keys verbatim."
+  },
+  {
+    "signature": "save.registerMigration(from, to, callback)",
+    "snippet": "save.registerMigration(1, 2, function(data) data.coins=data.coins or 0; return data end)",
+    "description": "Register an adjacent migration. Duplicate/missing/future-version chains raise errors."
+  },
+  {
+    "signature": "save.writeVersioned(name, version, data)",
+    "snippet": "save.writeVersioned(\"progress.json\", 2, {coins=10})",
+    "description": "Write a versioned JSON envelope in the game save directory."
+  },
+  {
+    "signature": "save.readVersioned(name, targetVersion)",
+    "snippet": "local progress = save.readVersioned(\"progress.json\", 2)",
+    "description": "Apply a validated migration chain in memory; does not automatically rewrite the save."
+  },
+  {
+    "signature": "filesystem.readJson(path)",
+    "snippet": "local data = filesystem.readJson(\"data/items.json\")",
+    "description": "Read project-relative JSON, limited to 1 MiB."
+  },
+  {
+    "signature": "filesystem.readToml(path)",
+    "snippet": "local data = filesystem.readToml(\"prefabs/coin.toml\")",
+    "description": "Read project-relative TOML, limited to 1 MiB."
+  },
+  {
+    "signature": "Animator:add(name, clip, options?)",
+    "snippet": "controller:add(\"idle\", idle, {looping=true})",
+    "description": "Register a clip; the first state becomes active. Optional enter/leave callbacks."
+  },
+  {
+    "signature": "Animator:set(name, restart?)",
+    "snippet": "controller:set(\"jump\", true)",
+    "description": "Switch/reset a state. onTransition(previous,next) may be assigned on the machine."
+  },
+  {
+    "signature": "Animator:transition(from, to, condition)",
+    "snippet": "controller:transition(\"idle\", \"run\", function() return moving end)",
+    "description": "Predicate or string \"finished\". First matching edge wins; one transition per update."
+  },
+  {
+    "signature": "Animator:update(dt)",
+    "snippet": "controller:update(dt)",
+    "description": "Update current clip and evaluate transitions."
+  },
+  {
+    "signature": "Animator:draw(...)",
+    "snippet": "controller:draw(player.x, player.y)",
+    "description": "Draw current clip using graphics.draw arguments."
+  },
+  {
+    "signature": "Animator:current()",
+    "snippet": "local state = controller:current()",
+    "description": "Get current animation-state name."
+  },
+  {
+    "signature": "Animator:setSpeed(speed)",
+    "snippet": "controller:setSpeed(1.2)",
+    "description": "Apply speed 0..100 to all clips."
+  },
+  {
+    "signature": "Animator:pause()",
+    "snippet": "controller:pause()",
+    "description": "Pause the active clip; predicates still evaluate if update is called."
+  },
+  {
+    "signature": "Animator:resume()",
+    "snippet": "controller:resume()",
+    "description": "Resume the active clip."
+  },
+  {
+    "signature": "Emitter:emit(count)",
+    "snippet": "sparks:emit(30)",
+    "description": "Emit up to remaining capacity; return number emitted."
+  },
+  {
+    "signature": "Emitter:update(dt)",
+    "snippet": "sparks:update(dt)",
+    "description": "Advance native simulation. dt must be finite and within 0..1 second."
+  },
+  {
+    "signature": "Emitter:draw()",
+    "snippet": "sparks:draw()",
+    "description": "Append particle quads during draw; alpha blend and square size only."
+  },
+  {
+    "signature": "Emitter:setPosition(x, y)",
+    "snippet": "sparks:setPosition(player.x, player.y)",
+    "description": "Position future emissions. Existing particles remain in world coordinates."
+  },
+  {
+    "signature": "Emitter:clear()",
+    "snippet": "sparks:clear()",
+    "description": "Clear particles and fractional spawn accumulator."
+  },
+  {
+    "signature": "Emitter:count()",
+    "snippet": "local count = sparks:count()",
+    "description": "Current number of live native particles."
+  },
+  {
+    "signature": "TileMap:update(dt)",
+    "snippet": "map:update(dt)",
+    "description": "Advance animated tiles, dt in 0..1 seconds."
+  },
+  {
+    "signature": "TileMap:getProperties()",
+    "snippet": "local properties = map:getProperties()",
+    "description": "Map custom properties as a key/value table."
+  },
+  {
+    "signature": "TileMap:getLayerProperties(name)",
+    "snippet": "local properties = map:getLayerProperties(\"ground\")",
+    "description": "Custom properties of an existing tile layer."
+  },
+  {
+    "signature": "TileMap:getTileProperties(gid)",
+    "snippet": "local properties = map:getTileProperties(1)",
+    "description": "Tileset properties of a global tile ID."
+  },
+  {
+    "signature": "TileMap:getCollisionRects(layer?)",
+    "snippet": "local walls = map:getCollisionRects()",
+    "description": "Centered pixel rectangles with radians rotation; explicit collision=true layers/objects by default."
+  },
+  {
+    "signature": "TileMap:findObject(name)",
+    "snippet": "local door = map:findObject(\"door\")",
+    "description": "First object with this name, or nil; coordinates retain Tiled object semantics."
+  },
+  {
+    "signature": "TileMap:setLayerOpacity(name, opacity)",
+    "snippet": "map:setLayerOpacity(\"clouds\", 0.5)",
+    "description": "Set one tile-layer opacity override in 0..1."
+  },
+  {
+    "signature": "TileMap:reload()",
+    "snippet": "map:reload()",
+    "description": "Load a candidate map, then replace this handle if successful. Does not recreate physics bodies."
+  }
+]

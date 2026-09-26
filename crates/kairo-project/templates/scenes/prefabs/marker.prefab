@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "name": "Marker",
+  "root": {
+    "id": 1,
+    "name": "Marker",
+    "kind": "StaticBody2D",
+    "script": "scripts/marker.lua",
+    "properties": {"shade": 0.5},
+    "children": [
+      {"id": 2, "name": "Collider", "kind": "Collider2D", "properties": {"shape": "rectangle", "width": 30, "height": 30}},
+      {"id": 3, "name": "Visual", "kind": "Control", "transform": {"position": [-15, -15]}, "properties": {"width": 30, "height": 30, "color": [0.5, 0.35, 0.85, 1]}}
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+[game]
+title = "Font atlas lab"
+width = 960
+height = 540
+vsync = true
+
+[save]
+identity = "kairo-example-fonts"

@@ -1,0 +1,11 @@
+[game]
+title = "Replay Bug Bookmarks"
+width = 960
+height = 600
+
+[save]
+identity = "kairo-example-replay-bugs"
+
+[replay]
+enabled=true
+seconds=10.0

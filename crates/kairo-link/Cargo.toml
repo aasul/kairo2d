@@ -1,0 +1,20 @@
+[package]
+name = "kairo-link"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Opt-in authenticated Kairo development sessions"
+
+[dependencies]
+kairo-core.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+snow = "=0.10.0"
+getrandom.workspace = true
+sha2 = "0.10"
+tempfile.workspace = true
+
+[lints]
+workspace = true

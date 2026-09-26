@@ -1,0 +1,27 @@
+[package]
+name = "kairo-render"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Order-preserving batched wgpu renderer for Kairo2D"
+
+[dependencies]
+egui.workspace = true
+egui-wgpu.workspace = true
+kairo-core.workspace = true
+kairo-assets.workspace = true
+anyhow.workspace = true
+bytemuck.workspace = true
+font8x8.workspace = true
+glam.workspace = true
+log.workspace = true
+wgpu.workspace = true
+winit.workspace = true
+
+[dev-dependencies]
+naga = { version = "=0.20.0", features = ["wgsl-in"] }
+tempfile.workspace = true
+
+[lints]
+workspace = true
