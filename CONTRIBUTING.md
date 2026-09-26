@@ -6,7 +6,8 @@ so we can agree on the problem and its scope.
 
 ## Before you start
 
-This 3.4.0 source snapshot has not passed a native build and release check. Please
+This 3.5.0 development snapshot has local Windows build checks but has not passed
+cross-platform release acceptance. Please
 start by following [VALIDATION.md](VALIDATION.md) and note which checks you can run.
 Don't assume a check passed because a test exists. If the build fails, include the
 command and relevant output in your report.

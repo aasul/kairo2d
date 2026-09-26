@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.5.0 development — 2026-09-26
+
+- Added native scene drawing, physics body and contact dispatch, audio sources,
+  interactive controls, and expanded scene editor properties and dragging.
+- Added the Relay Dusk game example with a mission, upgrades, enemy waves,
+  a boss, extraction, scoring, and saves.
+- Updated workspace and packaging versions to 3.5.0, selected the host's stable
+  Rust toolchain for cross-platform CI, and updated the desktop artifact tag filter.
+- This is a development version; no 3.5.0 release or cross-platform acceptance is
+  declared. See [VALIDATION.md](VALIDATION.md).
+
 ## Unreleased development work — 2026-09-26
 
 - Added a validated hierarchical scene resource with ordered nodes, stable file IDs,
@@ -10,8 +21,7 @@
   on subtree destruction, bounded dispatch, and safe listener changes in callbacks.
 - Added a focused `.scene` editor tab with tree, node-marker viewport, basic inspector,
   sibling ordering, reparenting by path, bounded tab history and save conflict checks.
-  Native node rendering/physics binding
-  and full visual scene tooling remain future work.
+  Full visual scene tooling remains future work.
 - Updated the Scene Workshop starter to load an authored scene, attached scripts,
   JSON prefab instances, and a node-owned global event subscription.
 - Fixed accepted Kairo Link sockets to use blocking framed I/O on Windows.
