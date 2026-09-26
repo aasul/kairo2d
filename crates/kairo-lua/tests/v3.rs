@@ -188,9 +188,23 @@ fn scene_bodies_sync_rapier_motion_and_release_on_switch_or_destroy() {
 
 #[test]
 fn native_body_contacts_emit_validated_scene_node_signals() {
-    let (_root, session) = project(
+    let root = tempfile::tempdir().unwrap();
+    std::fs::create_dir(root.path().join("scripts")).unwrap();
+    std::fs::write(
+        root.path().join("scripts/contact.lua"),
+        r#"
+        return {onCollision = function(self, other)
+            assert(other:isAlive() and other:hasTag('wall'))
+            script_contacts = script_contacts + 1
+        end}
+        "#,
+    )
+    .unwrap();
+    std::fs::write(
+        root.path().join("main.lua"),
         r#"
         contacts = 0
+        script_contacts = 0
         local level = scene.new('Contacts')
         local wall = level:createNode('StaticBody2D','Wall')
         wall.position = {x=100,y=100}
@@ -207,11 +221,27 @@ fn native_body_contacts_emit_validated_scene_node_signals() {
             assert(other:isAlive() and other:hasTag('wall'))
             contacts = contacts + 1
         end)
+        level:attachScript(ball, 'scripts/contact.lua')
         scene.switch(level)
     "#,
-    );
+    )
+    .unwrap();
+    let session = GameSession::load(
+        ProjectFs::new(root.path()).unwrap(),
+        &Config::default(),
+        false,
+    )
+    .unwrap();
     session.tick(1.0 / 60.0).unwrap();
-    assert!(session.lua().globals().get::<u32>("contacts").unwrap() > 0);
+    assert_eq!(session.lua().globals().get::<u32>("contacts").unwrap(), 1);
+    assert_eq!(
+        session
+            .lua()
+            .globals()
+            .get::<u32>("script_contacts")
+            .unwrap(),
+        1
+    );
 }
 
 #[test]
