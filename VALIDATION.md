@@ -102,17 +102,6 @@ permissions, RNG/replay/kinematics, pinned snapshot limits and restoration, part
 capacity/lifetimes, device-free mixer state, Tiled data, profiles, search, package
 logic and two authenticated Link tester channels. Their presence is not test success.
 
-## Archive checks
-
-The delivered ZIP is built with required-entry checks, deterministic source paths,
-CRC verification and a SHA-256 sidecar. It is independently extracted; all 348 file
-bytes are compared with the repository; source/API and Lua checks are rerun from
-that extracted copy. No source build/cache output is distributed.
-
-The archive's checksum is in `kairo2d-3.4.0.zip.sha256`, alongside the ZIP. It is not
-embedded into this report inside the same ZIP (which would create a self-referential
-checksum). No host-native release archive was produced.
-
 ## Explicit remaining release gates
 
 Run the full build/test/Clippy/format workflow on a supported native machine; fix
