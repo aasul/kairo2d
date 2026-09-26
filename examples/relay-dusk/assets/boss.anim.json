@@ -1,0 +1,13 @@
+{
+  "texture": "boss.png",
+  "looping": true,
+  "frames": [
+    {
+      "x": 0,
+      "y": 0,
+      "w": 96,
+      "h": 96,
+      "duration": 0.1
+    }
+  ]
+}
