@@ -1,4 +1,4 @@
-//! Snapshot storage has no knowledge of Lua, Rapier, filesystems, or GPU objects.
+//! Stores bounded snapshots independently of Lua, physics, files, and GPU resources.
 use anyhow::{ensure, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;

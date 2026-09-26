@@ -28,7 +28,7 @@ body:
     attributes:
       label: Before submitting
       options:
-        - label: I checked VALIDATION.md and the documented 3.3 limitations.
+        - label: I checked VALIDATION.md and the documented Kairo2D 3.4 limitations.
           required: true
         - label: This is not a private vulnerability report.
           required: true

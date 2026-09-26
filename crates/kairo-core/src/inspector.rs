@@ -1,4 +1,4 @@
-//! Wire-safe inspection data. No evaluator, addresses, or Lua registry handles.
+//! Data sent between the runtime and inspector. It contains no evaluator, addresses, or Lua handles.
 use anyhow::{ensure, Context, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

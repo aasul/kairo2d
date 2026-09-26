@@ -1,4 +1,4 @@
-//! Runtime discovery shared by editor diagnostics and distribution tooling.
+//! Finds the game runtime for the editor and packaging tools.
 use anyhow::{bail, Context, Result};
 use std::path::{Path, PathBuf};
 

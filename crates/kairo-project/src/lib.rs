@@ -1,4 +1,4 @@
-//! Project operations shared by the CLI and desktop editor.
+//! Project operations used by the CLI and desktop editor.
 mod files;
 mod package;
 pub mod runtime;

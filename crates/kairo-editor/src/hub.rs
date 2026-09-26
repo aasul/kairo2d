@@ -40,22 +40,22 @@ fn template_label(template: Template) -> &'static str {
 
 fn template_description(template: Template) -> &'static str {
     match template {
-        Template::Scenes => "Menus, gameplay and a real pause overlay.",
-        Template::InputActions => "Keyboard, mouse and controller bindings loaded from input.toml.",
-        Template::Inspector => "Explicit live fields, read-only defaults, local or remote editing.",
-        Template::Particles => "Mouse-follow particles with a native emitter and editable preset.",
-        Template::Mixer => "Four audio buses, panning, volume and mute.",
-        Template::ReplayBugs => "Capture, inspect and restore bounded in-memory bug bookmarks.",
-        Template::TopDown => "Signal Yard: scenes, input, tile collisions, animation, sound and saves.",
-        Template::Platformer => "A small jump controller with inspector, replay and particles.",
+        Template::Scenes => "A menu, a play scene, and a pause screen.",
+        Template::InputActions => "Set up keyboard, mouse, and controller bindings in input.toml.",
+        Template::Inspector => "Expose game values and try editing them while the game runs.",
+        Template::Particles => "Move the emitter with the mouse, then edit and save its preset.",
+        Template::Mixer => "Try the four audio buses, with volume, panning, and mute controls.",
+        Template::ReplayBugs => "Save a bug bookmark, inspect it, and restore the captured state.",
+        Template::TopDown => "Signal Yard uses scenes, input actions, tile collisions, animation, sound, and saves.",
+        Template::Platformer => "A small platform game with jumping, particles, and inspector controls.",
         Template::Empty => "An empty Lua lifecycle. Add your own game code.",
         Template::HelloWorld => "Shapes and text with a small, readable starter script.",
         Template::Movement => "Move a sprite with keyboard controls.",
         Template::Breakout => "An arcade game with sound, collisions and restart logic.",
-        Template::Micro => "A playable micro-game with Fantasy Console mode already enabled at 320 x 180.",
-        Template::Ui => "Retained game UI plus interactive debugui controls. Learn the Lua wiring.",
-        Template::Link => "A live-testing starter with state-transfer hooks. Hosting still requires explicit opt-in.",
-        Template::Replay => "Registered game state and recording enabled. Open Replay to scrub the timeline.",
+        Template::Micro => "A small playable game set up for a 320 x 180 canvas.",
+        Template::Ui => "A game HUD and a few interactive development controls, all wired in Lua.",
+        Template::Link => "A live-testing starter with save and restore hooks for game state.",
+        Template::Replay => "Registered game state with recording enabled. Open Replay to browse snapshots.",
     }
 }
 
@@ -116,7 +116,7 @@ impl Hub {
                 if ui.add_enabled(valid_folder, egui::Button::new(format!("Create {} project", template_label(self.template)))).clicked() {
                     action = Some(HubAction::Create { path: self.parent.join(&self.folder), title: self.title.clone(), template: self.template });
                 }
-                ui.small("Creates a new folder. Your other projects are not modified.");
+                ui.small("Kairo creates this project in a new folder. Your other projects stay as they are.");
 
                 let ui = &mut columns[1];
                 ui.horizontal_wrapped(|ui| {
@@ -138,12 +138,12 @@ impl Hub {
                 ui.separator();
                 ui.strong("Already have a project?");
                 ui.label("Open it, then use the FEATURES bar: Fantasy Console, Link, Replay, Profiler and Lua UI.");
-                ui.label("Fantasy Console can be enabled for an existing project. Link is a session you explicitly start. Replay records only supported registered state.");
+                ui.label("You can enable Fantasy Console for an existing project. Start Link when you are ready to invite a trusted tester. Replay captures the state you register.");
                 ui.small("F6 Overview | F7 Fantasy Console | F8 Link | F9 Replay | F10 Profiler");
             });
             ui.add_space(18.0);
             ui.separator();
-            ui.small("Opening a project does not execute its scripts. Run only projects and Link sessions you trust.");
+            ui.small("Project scripts start only when you choose Run. Open projects and Link sessions from people you trust.");
         });
         action
     }

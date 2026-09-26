@@ -1,60 +1,57 @@
-# Security policy
+# Security
 
-Kairo2D 3.4.0 is an experimental, uncompiled source snapshot. No audited or supported
-production release is represented by this archive.
+Kairo2D is experimental. The 3.4.0 source has not been audited or validated as a
+production release. The notes here describe the current design and its limits, not a
+security certification.
 
-## Reporting
+## Reporting a vulnerability
 
-Do not post exploitable details, tokens or private projects in a public issue.
-When this repository is published, use the host's private vulnerability-reporting
-channel if enabled. No maintained security email/address is asserted here. If no
-private channel exists, open a minimal request for private contact without exploit
-material. Include affected version, platform, reproducer and impact through that
-private channel.
+Please use GitHub's private vulnerability reporting for this repository. Don't post
+exploit details, tokens, or private project files in a public issue. Include the
+affected version, platform, steps to reproduce, and likely impact. If private
+reporting is unavailable, open an issue asking for a private contact and leave out
+the sensitive details.
 
-## Trust model
+## Running projects
 
-Game source, native extensions and project assets must come from trusted authors.
-Project-relative reads, mutation guards, resource caps and a Lua watchdog are useful
-guardrails, not an OS sandbox. Native decoders can allocate before all size checks;
-Lua callbacks can call native work the instruction watchdog cannot preempt. Local
-filesystem races and hostile project authors are outside the sandbox guarantees.
-Never run untrusted games with elevated privileges or valuable ambient access.
+Treat game code, native extensions, and project assets as trusted input. Path checks,
+resource limits, and the Lua instruction watchdog reduce some risks, but they do not
+isolate a game from the operating system. Native decoders may allocate memory before
+all size checks run, and Lua code can call native work that the watchdog cannot stop.
+Do not run an untrusted project with elevated privileges or access to data you need
+to protect.
 
-Kairo Link listeners/connections are inactive by default. Hosting/connecting is explicit; it uses a strong
-OS-random shared key and authenticated encryption. A valid key grants participation,
-not a distinct human identity. The host has code-update authority for the tester's
-game APIs and configured save identity. Authentication cannot make a hostile host safe.
-Keep credentials out of the project and source control. Restart the host to rotate
-keys; simply disconnecting a peer does not revoke its key. Windows token files inherit
-parent ACLs. Protect the chosen directory and avoid public listener exposure.
+## Kairo Link
 
-Protocol/path/size/time checks are implemented, but the network code has not been
-compiled, executed, fuzzed or audited during authoring. Treat it as experimental.
-There is no remote shell, arbitrary native binary transfer, automatic service startup
-or external command API. The threat model and limits are in docs/kairo-link.md.
+Link is off until someone chooses to host or connect. It uses an OS-generated shared
+key and authenticated encryption, but the key identifies a session, not an individual
+person. A trusted host can update the tester's game APIs and use the configured save
+identity. Encryption does not make a hostile host safe.
 
-Replay does not rewind files or other external effects. Export can accidentally ship
-sensitive data if you store it under ordinary permitted names; exclusions are not a
-comprehensive secret scanner. Review all packages and third-party licenses before
-sharing. Signed binaries, dependency audits and release acceptance remain future gates.
+Keep the token outside the project and source control. Restart the host to rotate it;
+disconnecting a tester does not revoke their key. On Windows, token-file access is
+inherited from its parent folder, so protect that folder. Avoid exposing a listener
+to the public internet. Link has not been compiled, run through fuzz testing, or
+independently audited for this source snapshot. See [the Link guide](docs/kairo-link.md)
+for the protocol and its limits.
 
-## 3.4 inspection and profiles
+There is no remote shell, native binary transfer, automatic service startup, or
+external command API. A Link session is intended for trusted development, not as a
+multi-user permission system. Rate and size limits help contain mistakes but do not
+turn an untrusted host into a safe one.
 
-Protocol 2 rejects the old 3.3 wire protocol. The same bounded typed DebugCommand
-model serves local editor stdin and authenticated Link transport. Inspector reads
-require explicit exposure; writes additionally require writable metadata, a fresh
-VM session ID, an expected-current-value match and type/range/shape validation.
-Only supported primitive/table values are admitted. There is no eval expression,
-shell command, arbitrary global walk or arbitrary file-request command.
+## Inspector, Replay, and exports
 
-Scene/mixer/debug/bookmark/localization commands are development authority granted
-to a trusted session, not a multi-tenant permission model. Rate/queue/size limits
-reduce accidental or malicious load but do not make shared-key hosts untrusted-safe.
-The Release profile disables development tools and Link joining by default; an
-author can explicitly change those defaults. Project profiles are not privilege
-isolation or a replacement for running untrusted code in an OS sandbox.
+Inspector only exposes values that game code registers. Values are read-only unless
+the author marks them writable; edits are checked against the current session, value,
+type, and range. These controls are development tools, not user or tenant permissions.
 
-Captured bookmark bytes can include registered private game data. Exports are
-metadata-only, but labels/notes may still be sensitive. Ordinary project exports
-can contain game data under names not recognized by exclusions; review every ZIP.
+Replay restores registered game data and supported physics state. It does not undo
+file writes or other outside effects. Bookmark exports contain metadata, but labels
+and notes can still include private information. Game exports may include data stored
+under ordinary filenames, so review each package before sharing it. Export exclusions
+are not a complete secret scanner.
+
+Release profiles turn off development tools and Link joining by default. Projects can
+change those defaults. A profile is not an operating-system sandbox. Signed binaries,
+dependency review, and full release acceptance remain future work.

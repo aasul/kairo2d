@@ -1,11 +1,12 @@
 # Changelog
 
-## 3.4.0 - 2026-09-18 (uncompiled development source)
+## 3.4.0 - 2026-09-18
 
-Continues the latest 3.3 Feature UI archive, preserving the visible feature bar,
-runtime discovery and earlier enum/deprecation fixes. No Rust build, Clippy,
-formatting check, native test, GUI/device/network run or executable release was
-possible in the authoring environment. See VALIDATION.md for actual checks.
+This release adds scenes, named input actions, live inspection, particles, audio
+buses, tilemap support, replay bookmarks, and project tools. Kairo2D is still
+experimental, and this release is published as source code. The native build and
+platform checks have not all been completed; see [VALIDATION.md](VALIDATION.md) for
+the checks that were run.
 
 ### Added
 - Queued scene stack/lifecycle/shared state and named animation controllers.

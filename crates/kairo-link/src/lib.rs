@@ -1,4 +1,4 @@
-//! Experimental authenticated project transport. No shell or native-code loading.
+//! Opt-in authenticated transport for trusted development sessions.
 mod bundle;
 mod client;
 mod host;

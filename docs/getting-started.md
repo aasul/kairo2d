@@ -1,13 +1,14 @@
 # Getting started
 
-Kairo2D 3.4.0 is currently an uncompiled development source snapshot. The commands
-below are the build and acceptance path, not evidence that a binary release exists.
+Kairo2D is distributed here as source code. Build it on your computer before running
+the editor or examples. The recorded build and test results are in
+[VALIDATION.md](../VALIDATION.md).
 
-Install the prerequisites in the root README. From the repository root, run
-`cargo fmt --all`, then `cargo build --workspace -j 1`. Both `kairo-editor` and `kairo`
-must be built. Start the editor with `cargo run -p kairo-editor` or directly run an
-example with `cargo run -p kairo-cli -- run examples/hello-world`. For the new
-combined demo, use `examples/top-down` (Signal Yard).
+Install the prerequisites listed in the root README. From the repository root, run
+`cargo fmt --all` and `cargo build --workspace -j 1` to build both the editor and
+runtime. Open a project in the editor with `cargo run -p kairo-editor`, or run an
+example directly with `cargo run -p kairo-cli -- run examples/hello-world`. For a
+game that uses several systems together, try `examples/top-down` (Signal Yard).
 
 In the editor choose a new project directory inside an existing parent, a title,
 and a template. The directory must not already exist. Projects include `main.lua`,

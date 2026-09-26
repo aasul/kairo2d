@@ -1,4 +1,4 @@
-//! A game session owns a Lua VM and its resources. Reloading replaces the session.
+//! Runs a game in its own Lua VM and resource session. Reloading creates a new session.
 mod actions;
 mod animation;
 mod audio;

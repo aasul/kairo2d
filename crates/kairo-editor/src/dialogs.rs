@@ -127,7 +127,7 @@ impl KairoApp {
                     Dialog::Delete(path) => {
                         ui.label(path.display().to_string());
                         ui.label("This permanently deletes the selected file or folder from disk.");
-                        ui.small("Modified tabs must be saved or closed first. There is no filesystem undo.");
+                        ui.small("Save or close modified tabs first. Deleting this file cannot be undone.");
                         if ui.button("Delete permanently").clicked() {
                             result = self.workspace.as_mut().ok_or_else(|| anyhow::anyhow!("no project is open")).and_then(|workspace| workspace.delete(path));
                             done = result.is_ok();
@@ -193,7 +193,7 @@ impl KairoApp {
                     }
                     Dialog::UiGuide => {
                         ui.heading("Game UI");
-                        ui.label("Use ui for menus and HUDs shipped with your game. There is no global enable switch; you create and draw widgets in Lua.");
+                        ui.label("Use the Lua UI API to build the menus and HUDs that ship with your game. Development controls belong in game.debugUI.");
                         ui.code("hud = ui.panel({ padding = 12 })\nlabel = hud:add(ui.label(\"Score: 0\"))");
                         ui.label("The UI Workshop starter includes the complete load / update / draw wiring.");
                         ui.horizontal_wrapped(|ui| {
@@ -205,7 +205,7 @@ impl KairoApp {
                         ui.label("Use debugui inside game.debugUI for egui-backed sliders, text and checkboxes. Run the game to interact with them.");
                         ui.code("function game.debugUI()\n    debugui.window(\"Player\", function()\n        debugui.text(\"Debug controls\")\n    end)\nend");
                         if ui.button("Debug UI snippets").clicked() { next = Some(Action::ApiQuery("debugui.".into())); done = true; }
-                        ui.small("No visual widget designer, breakpoints or semantic autocomplete is claimed.");
+                        ui.small("This guide includes Lua examples and snippets to help you get started.");
                         if ui.button("Close").clicked() { done = true; }
                     }
                     Dialog::Export { output } => {
@@ -215,7 +215,7 @@ impl KairoApp {
                         if ui.button("Choose parent...").clicked() {
                             if let Some(parent) = rfd::FileDialog::new().pick_folder() { *output = parent.join("kairo-game").display().to_string(); }
                         }
-                        ui.small("Saves files, checks Lua/config, then copies the native runtime and project. Cross-compilation is not supported. Existing output directories are never overwritten.");
+                        ui.small("Kairo checks the project and copies in a runtime built for this computer. Choose a new output folder for each export.");
                         if ui.button("Build package").clicked() { next = Some(Action::Build(PathBuf::from(&*output))); done = true; }
                     }
                     Dialog::Preferences => {
@@ -293,7 +293,7 @@ impl KairoApp {
         let mut insert = None;
         egui::Window::new("Kairo Lua API").open(&mut open).default_width(560.0).default_height(360.0).show(ctx, |ui| {
             ui.add(egui::TextEdit::singleline(&mut self.api_query).hint_text("Filter module or function"));
-            ui.small("Click a signature to insert into the active Lua tab, or use Copy. This is not semantic autocomplete.");
+            ui.small("Click a function signature to insert it into the active Lua tab, or copy it for later.");
             ui.separator();
             let query = self.api_query.to_lowercase();
             egui::ScrollArea::vertical().show(ui, |ui| {

@@ -1,34 +1,28 @@
-# Contributing to Kairo2D
+# Contributing
 
-Start by reproducing the current build and reading VALIDATION.md. This repository is
-an uncompiled source snapshot; establishing a green native build takes precedence
-over adding more surface area. Do not infer test success from test files existing.
+Thanks for taking an interest in Kairo2D. The project is experimental, and there is still plenty to improve. Before picking up a large change, open an issue or discussion so we can agree on the problem and its scope.
 
-Use a focused branch and include a reproducer/test for behavior changes. Pass workspace
-formatting, check, tests and strict Clippy with all targets/features. Run real headless
-smoke tests after building both executables, and relevant GUI/device/network acceptance
-for affected subsystems. Include exact commands and environmental limitations.
+## Before you start
 
-Keep Lua APIs small, consistent and backend-independent. Document argument/default,
-lifetime, error and reload semantics. Update docs/lua-api.json when a public function
-is added, then run `python scripts/generate_api_docs.py`. CI checks the generated
-reference with `--check`; the editor reads the same JSON. Examples, lifecycle
-semantics and security constraints still need human review. Use opaque handles; never pass raw GPU/physics pointers to Lua. Do not globally
-sort translucent draws, bypass scoped paths, block the UI on unbounded work or suppress
-lints merely to get green output.
+This 3.4.0 source snapshot has not passed a native build and release check. Please start by following [VALIDATION.md](VALIDATION.md) and note which checks you can run. Don't assume a check passed because a test exists. If the build fails, include the command and relevant output in your report.
 
-Commit the actual resolved Cargo.lock for a tested release, but never fabricate it.
-Do not commit target/dist, local saves, tokens, tool caches or private machine paths.
-Review generated dependency notices and asset licenses. Screenshots must come from
-the running editor, not a marketing mockup presented as execution evidence.
+For a change, use a focused branch and keep the pull request about one problem. Add or update tests when behavior changes. Run formatting, workspace checks, tests, and Clippy if your setup supports them. For editor, device, audio, graphics, or network changes, describe which parts you tried on a real system and which you could not verify. The exact native release checklist is in [docs/release-acceptance.md](docs/release-acceptance.md).
 
-Pull requests should describe the problem, concrete changes, tests actually run,
-known limitations and any compatibility changes. Source contributions and original
-assets are MIT-licensed under LICENSE. Follow CODE_OF_CONDUCT.md. Security reports
-follow SECURITY.md rather than public exploit disclosures.
+If a change is entirely AI-generated and has not been checked by a person, keep it on an AI/... branch until it has been reviewed. After reviewing and verifying the change, move it to a normally named feature branch before opening a pull request. Disclose AI assistance in the pull request template, including whether a person reviewed the result.
 
-For new gameplay systems, prefer bounded device-independent Rust tests and focused
-Lua library tests. A Lua test using explicit graphics/physics/audio doubles must be
-labeled as such and must not replace native integration coverage. Test inspector
-permissions/staleness, profile defaults and protocol rejection before increasing
-remote authority. Document an omitted feature rather than shipping an inert control.
+## Project conventions
+
+- Keep Lua APIs small and consistent. Document their arguments, defaults, lifetime, errors, and reload behavior.
+- When adding a public Lua function, update docs/lua-api.json and regenerate the reference with python scripts/generate_api_docs.py.
+- Keep engine APIs independent of a particular graphics or physics backend. Use opaque handles rather than passing native pointers into Lua.
+- Keep file access within the project and bound work that can grow with user input.
+- Don't silence a warning just to make CI green. Explain why a lint exception is needed if one is unavoidable.
+- If a control or feature is not implemented, document that clearly rather than leaving a control that appears to work.
+
+## Submitting a pull request
+
+Describe the problem, the change, and how you checked it. Include known limits and compatibility changes. Be clear when a check could not be run. Don't include local build output, tokens, private project data, or generated dependency notices without reviewing them first. Release builds should use a real resolved Cargo.lock; don't invent one or copy one from an unrelated project.
+
+The main branch ruleset requires a pull request and an approving review of the latest push before changes can be merged.
+
+Code and original assets are covered by the [MIT license](LICENSE). Please follow the [Code of Conduct](CODE_OF_CONDUCT.md). For security issues, use [SECURITY.md](SECURITY.md) instead of opening a public issue with exploit details.

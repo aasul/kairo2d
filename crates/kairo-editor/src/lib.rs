@@ -1,4 +1,4 @@
-//! The Kairo desktop workspace. The runtime runs in a supervised child process.
+//! Kairo's desktop editor. Games run in a separate process managed by the editor.
 mod app;
 mod code;
 mod console;
