@@ -771,6 +771,45 @@ fn actual_animation_tilemap_micro_ui_replay_and_link_examples_tick_headlessly() 
 }
 
 #[test]
+fn relay_dusk_starts_fights_and_pauses_headlessly() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples/relay-dusk");
+    let fs = ProjectFs::new(root).unwrap();
+    let config = Config::load(&fs).unwrap();
+    let session = GameSession::load(fs, &config, false).unwrap();
+    session.state().borrow_mut().input.set_key("enter", true);
+    session.tick(1.0 / 60.0).unwrap();
+    session.state().borrow_mut().input.set_key("enter", false);
+    session
+        .lua()
+        .load("assert(scene.current() == 'mission')")
+        .exec()
+        .unwrap();
+    {
+        let mut state = session.state().borrow_mut();
+        state.input.set_key("d", true);
+        state.input.set_key("space", true);
+        state.input.mouse_x = 1050.0;
+        state.input.mouse_y = 355.0;
+    }
+    for _ in 0..180 {
+        session.tick(1.0 / 60.0).unwrap();
+    }
+    assert!(!session.state().borrow().frame.commands.is_empty());
+    {
+        let mut state = session.state().borrow_mut();
+        state.input.set_key("space", false);
+        state.input.set_key("d", false);
+        state.input.set_key("escape", true);
+    }
+    session.tick(1.0 / 60.0).unwrap();
+    session
+        .lua()
+        .load("assert(scene.current() == 'pause')")
+        .exec()
+        .unwrap();
+}
+
+#[test]
 fn focus_cancellation_does_not_synthesize_a_ui_click() {
     let (_root, session) = project(
         r#"
