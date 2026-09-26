@@ -1,9 +1,9 @@
 # Kairo desktop editor
 
-3.4 retains the permanent 3.3 feature bar and adds visible workflow tools. Source
-changes require rebuilding **both** editor and runtime. Launch an old executable
-and you will still see its old interface. The updated title says **Workflow Tools**.
-Native GUI behavior remains unverified in the authoring environment.
+Build both the editor and runtime after changing the source. An older executable
+still has its original interface; the current editor title includes **Workflow
+Tools**. Build and platform test results are recorded in
+[VALIDATION.md](../VALIDATION.md).
 
 ## Start and files
 

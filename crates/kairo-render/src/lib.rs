@@ -1,4 +1,4 @@
-//! Batched scene rendering, optional virtual canvas, and one submission per frame.
+//! Batches draw commands and presents them on a window or virtual canvas.
 mod debugui;
 pub mod mesh;
 mod micro;

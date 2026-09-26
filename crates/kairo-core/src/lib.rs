@@ -1,4 +1,4 @@
-//! Platform-independent services shared by the engine backends.
+//! Core engine services shared across platforms.
 pub mod animation;
 pub mod bookmarks;
 pub mod config;

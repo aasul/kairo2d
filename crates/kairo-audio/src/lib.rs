@@ -1,4 +1,4 @@
-//! Decoded sound caching and independently controlled playback voices.
+//! Caches decoded sounds and manages their playback voices.
 use anyhow::{ensure, Context, Result};
 use kairo_core::mixer::{BusStatus, BUSES};
 use kairo_core::{ProjectFs, SoundHandle, VoiceHandle};

@@ -8,10 +8,10 @@ python scripts/generate_api_docs.py --check
 python scripts/package.py --output ../kairo2d-3.4.0.zip
 ```
 
-The source archive has one `kairo2d-3.4.0/` root, required-entry/CRC checks and a SHA-256
-sidecar. It excludes target, dist, .git, caches, local credential patterns and generated
-license reports. The actual delivered ZIP is independently extracted and byte-checked.
-Archive integrity is not compilation evidence.
+The source archive has one `kairo2d-3.4.0/` root and includes required-file, CRC, and
+SHA-256 checks. Build output, Git metadata, caches, and local credential files are
+left out. The archive is extracted and checked after it is created. These checks
+confirm the contents of the ZIP, not that the Rust code builds.
 
 ## Native desktop
 
@@ -36,10 +36,10 @@ It does not install MSVC/Rust. `-TargetDirectory` relocates build outputs; `-Tar
 selects an already-supported installed native Windows target. This is not a general
 cross-compilation service. Use the same target directory/toolchain for both binaries.
 
-The native artifact workflow resolves a shared lockfile, builds on Windows/Linux/macOS,
-executes headless examples and packages only on success. It is configured but was not
-run during authoring. Run/manual GUI acceptance, signing and dependency review remain
-release tasks even if a future CI build succeeds.
+The desktop release workflow resolves one lockfile, builds on Windows, Linux, and
+macOS, runs the headless examples, and packages only after those steps pass. It still
+needs a run on each platform, followed by hands-on editor checks, signing, and a
+review of the dependencies included in the release.
 
-The absence of Cargo in the authoring environment means **no native artifact is included
-with the 3.4 source delivery**. There is no fake Kairo.exe or fabricated Cargo.lock.
+The 3.4.0 source release does not include a native desktop build. Build the editor and
+runtime from this repository for your platform before packaging a game.

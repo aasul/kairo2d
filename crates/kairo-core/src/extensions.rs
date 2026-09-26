@@ -1,4 +1,4 @@
-//! Source-level Rust extension API. This is not a stable C ABI or a dynamic loader.
+//! Statically compiled Rust extensions hosted by the engine.
 use crate::{Camera, Color, DrawCommand, Frame, InputState, Quad, TextureHandle, Transform};
 use anyhow::{ensure, Result};
 use glam::Vec2;

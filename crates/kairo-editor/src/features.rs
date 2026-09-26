@@ -54,7 +54,7 @@ pub(crate) fn overview(
             FeatureCard {
                 title: "Fantasy Console",
                 status: if config.micro.enabled { format!("ON in project | {} x {}", config.micro.width, config.micro.height) } else { "OFF in project".into() },
-                description: "Kairo Micro: low-resolution canvas, integer scaling, pixel snapping and limited palettes. No manual TOML editing required.",
+                description: "Choose a low-resolution canvas and palette, then run your game with pixel snapping and integer scaling.",
                 primary: ("Configure Fantasy Console", Action::Micro),
                 secondary: Some(("New fantasy project", Action::NewProject(Template::Micro))),
             },
@@ -68,7 +68,7 @@ pub(crate) fn overview(
             FeatureCard {
                 title: "Kairo Replay",
                 status: if state.paused { "PAUSED".into() } else if state.recording { "RECORDING".into() } else if config.replay.enabled { "Auto-record enabled in project".into() } else { "Recording is off".into() },
-                description: "Record registered Lua state, pause, restore a snapshot and branch from it. Not an automatic rewind of every variable.",
+                description: "Save snapshots of registered game state, pause, and resume from an earlier point to try another path.",
                 primary: ("Open Replay", Action::Replay),
                 secondary: Some(("New Replay demo", Action::NewProject(Template::Replay))),
             },
@@ -89,14 +89,14 @@ pub(crate) fn overview(
             FeatureCard {
                 title: "Lua UI",
                 status: "Game UI and debug controls".into(),
-                description: "Use panels, labels, buttons and progress bars in-game, or sliders and checkboxes in game.debugUI. These are script APIs, not a global switch.",
+                description: "Build in-game panels and HUDs with Lua, and add sliders or checkboxes to the development UI.",
                 primary: ("UI setup & snippets", Action::UiGuide),
                 secondary: Some(("New UI demo", Action::NewProject(Template::Ui))),
             },
             FeatureCard {
                 title: "Build & Export",
                 status: "Host platform only".into(),
-                description: "Package the project with the native runtime. The exported directory runs without Rust or Cargo installed.",
+                description: "Package your game with a runtime built for this computer. Players do not need Rust or Cargo installed.",
                 primary: ("Export game", Action::Export),
                 secondary: None,
             },
@@ -127,7 +127,7 @@ pub(crate) fn overview(
             });
             ui.add_space(8.0);
         }
-        ui.small("Creating a demo opens the new-project screen. Existing project files are never replaced by a template.");
+        ui.small("Choose a demo to open the new-project screen. Templates are written to a new folder.");
     });
     action
 }

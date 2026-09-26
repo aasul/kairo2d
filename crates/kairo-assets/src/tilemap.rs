@@ -1,4 +1,4 @@
-//! Finite orthogonal Tiled JSON maps with array-encoded tile layers.
+//! Loads finite orthogonal Tiled JSON maps with array-encoded tile layers.
 use crate::AssetManager;
 use anyhow::{bail, ensure, Context, Result};
 use kairo_core::{ProjectFs, TextureHandle};

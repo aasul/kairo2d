@@ -1,4 +1,4 @@
-//! Texture decoding and path-based caching. GPU objects live in kairo-render.
+//! Loads and caches textures. GPU objects are managed by kairo-render.
 pub mod fonts;
 pub mod tilemap;
 

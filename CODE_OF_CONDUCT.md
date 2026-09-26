@@ -13,11 +13,9 @@ restrict participation, or ban accounts. Responses should be proportionate to
 the behavior and should not punish good-faith questions or respectful disagreement.
 Maintainers are subject to the same expectations as contributors.
 
-To report a concern, contact a repository maintainer privately using the contact
-method on their public profile. Avoid posting sensitive details in a public issue.
-When publishing a fork, its maintainers should establish and advertise a private
-reporting channel. This source snapshot does not invent a monitored email address
-or a moderation team that does not yet exist.
+To report a concern, contact a repository maintainer privately. Avoid sharing
+personal details in a public issue. Maintainers of forks should provide a private
+way to report concerns and explain how they will respond.
 
 This policy applies to the repository, its discussions and associated community
 spaces, including conduct while representing the project elsewhere.

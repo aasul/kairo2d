@@ -1,4 +1,4 @@
-//! Save data is kept outside the installation and never shares the project root.
+//! Keeps per-user game saves outside both the installation and project folders.
 use crate::ProjectFiles;
 use anyhow::{ensure, Context, Result};
 use std::path::Path;

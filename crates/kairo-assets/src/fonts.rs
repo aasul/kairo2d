@@ -1,4 +1,4 @@
-//! On-demand glyph rasterization into bounded, reusable RGBA atlas pages.
+//! Rasterizes glyphs on demand into reusable RGBA atlas pages with fixed size limits.
 use crate::{AssetManager, TextureFilter};
 use anyhow::{ensure, Context, Result};
 use fontdue::{Font, FontSettings, Metrics};
