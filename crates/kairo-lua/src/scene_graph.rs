@@ -228,8 +228,20 @@ impl UserData for GraphRef {
             let result = lua.create_table()?;
             for (index, (a, b)) in pairs.into_iter().enumerate() {
                 let pair = lua.create_table()?;
-                pair.set(1, NodeRef { graph: this.0.clone(), id: a })?;
-                pair.set(2, NodeRef { graph: this.0.clone(), id: b })?;
+                pair.set(
+                    1,
+                    NodeRef {
+                        graph: this.0.clone(),
+                        id: a,
+                    },
+                )?;
+                pair.set(
+                    2,
+                    NodeRef {
+                        graph: this.0.clone(),
+                        id: b,
+                    },
+                )?;
                 result.set(index + 1, pair)?;
             }
             Ok(result)
