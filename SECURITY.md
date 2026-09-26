@@ -1,6 +1,6 @@
 # Security
 
-Kairo2D is experimental. The 3.4.0 source has not been audited or validated as a
+Kairo2D is experimental. The 3.5.0 source has not been audited or validated as a
 production release. The notes here describe the current design and its limits, not a
 security certification.
 

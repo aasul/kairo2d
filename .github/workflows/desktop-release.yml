@@ -3,7 +3,7 @@ name: Native desktop artifacts
 on:
   workflow_dispatch:
   push:
-    tags: ['v3.3.*']
+    tags: ['v3.5.*']
 
 permissions:
   contents: read

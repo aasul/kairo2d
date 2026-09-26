@@ -1,4 +1,26 @@
-# Validation - Kairo2D 3.4.0
+# Validation - Kairo2D 3.5.0 development
+
+## 3.5.0 version and CI follow-up — 2026-09-26
+
+The merged `main` contains the scene changes and Relay Dusk. This branch updates
+the development version, package names, host-native stable Rust toolchain selection,
+and the desktop artifact tag filter. The published 3.4.0 source release remains
+historical; no 3.5.0 release or cross-platform acceptance is declared.
+
+On this Windows host, `cargo fmt --all -- --check`,
+`cargo check --workspace --all-targets --all-features --locked`,
+`cargo clippy --workspace --all-targets --all-features -- -D warnings`,
+`cargo test --workspace --all-features`, and `cargo build --workspace` passed
+with the installed Windows GNU stable toolchain. `scripts/source_audit.py` passed with
+176 API entries, `scripts/generate_api_docs.py --check` passed, all 24 example
+smoke tests passed, and `scripts/package_smoke.py` passed using the bundled
+Python interpreter. Native GUI/GPU quality, physical audio and controller
+devices, and Linux/macOS behavior still require hands-on acceptance.
+
+The prior `main` GitHub Actions run failed at the workspace check on all three
+platforms. The repository had pinned a Windows GNU target in `rust-toolchain.toml`;
+this branch selects each host's stable toolchain. The exact CI failure text was
+unavailable, so this change must be verified by a new CI run before merge.
 
 ## Relay Dusk game follow-up — 2026-09-26
 

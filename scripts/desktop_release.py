@@ -13,7 +13,7 @@ import sys
 import tempfile
 import zipfile
 
-VERSION = "3.4.0"
+VERSION = "3.5.0"
 
 
 def native_executable(path: Path) -> None:

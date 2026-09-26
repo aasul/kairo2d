@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 import zipfile
 
-VERSION = "3.4.0"
+VERSION = "3.5.0"
 SKIP_PARTS = {".git", "target", "dist", "__pycache__", ".idea", ".vscode", ".venv"}
 SKIP_NAMES = {".DS_Store", "Thumbs.db", ".env", "session-token.txt", "dependency-licenses.json"}
 REQUIRED = {
