@@ -1,3 +1,4 @@
+use kairo_core::profiler::DebugCommand;
 use kairo_core::{Config, DrawCommand, ProjectFs};
 use kairo_lua::GameSession;
 
@@ -16,6 +17,324 @@ fn project(source: &str) -> (tempfile::TempDir, GameSession) {
     )
     .unwrap();
     (root, session)
+}
+
+#[test]
+fn debug_profiler_attributes_registered_script_callbacks_and_resets_each_frame() {
+    let root = tempfile::tempdir().unwrap();
+    std::fs::create_dir(root.path().join("scripts")).unwrap();
+    std::fs::write(
+        root.path().join("scripts/enemy.lua"),
+        r#"
+        return {update = function(self, dt) self.elapsed = (self.elapsed or 0) + dt end}
+    "#,
+    )
+    .unwrap();
+    std::fs::write(
+        root.path().join("main.lua"),
+        r#"
+        local level = scene.new('Arena')
+        local enemy = level:createNode('Node2D', 'Enemy')
+        level:attachScript(enemy, 'scripts/enemy.lua')
+        scene.switch(level)
+        function game.update(dt) end
+    "#,
+    )
+    .unwrap();
+    let mut config = Config::default();
+    config.development.profiler = true;
+    let session = GameSession::load(ProjectFs::new(root.path()).unwrap(), &config, false).unwrap();
+    session
+        .debug_command(kairo_core::profiler::DebugCommand::DebugDraw {
+            physics: false,
+            bounds: false,
+            velocities: false,
+            origins: true,
+            names: true,
+            camera: true,
+        })
+        .unwrap();
+    session.tick(1.0 / 60.0).unwrap();
+    assert!(session
+        .state()
+        .borrow()
+        .frame
+        .commands
+        .iter()
+        .any(|command| matches!(command, DrawCommand::Text { text, .. } if text == "Enemy")));
+    let sample = session.telemetry();
+    sample.validate().unwrap();
+    assert_eq!(sample.profile.active_nodes, 2);
+    session
+        .lua()
+        .load("assert(profiler.stats().active_nodes == 2)")
+        .exec()
+        .unwrap();
+    assert!(sample.profile.profiling_enabled);
+    assert!(sample
+        .profile
+        .callback_samples
+        .iter()
+        .any(|entry| entry.script == "scripts/enemy.lua"
+            && entry.scene == "Arena"
+            && entry.node_path == "Arena/Enemy"
+            && entry.callback == "update"
+            && entry.calls == 1));
+    assert!(sample
+        .profile
+        .callback_samples
+        .iter()
+        .any(|entry| entry.script == "main.lua" && entry.callback == "update"));
+    let calls = sample.profile.lua_callbacks;
+    session.tick(1.0 / 60.0).unwrap();
+    assert_eq!(session.telemetry().profile.lua_callbacks, calls);
+}
+
+#[test]
+fn runtime_hierarchy_pages_and_selection_report_live_node_details() {
+    let (_root, session) = project(
+        r#"
+        level = scene.new('Arena')
+        branch = level:createNode('Node2D', 'Wave')
+        target = branch:createChild('Sprite', 'Boss')
+        target.position = {x=918, y=442}
+        target:addTag('boss')
+        target:setProperty('attack_delay', 1.25)
+        for i=1,36 do level:createNode('Node2D', 'Enemy' .. i) end
+        scene.switch(level)
+    "#,
+    );
+    session.tick(1.0 / 60.0).unwrap();
+    let snapshot = session.telemetry().inspection;
+    assert!(snapshot.error.is_none(), "{:?}", snapshot.error);
+    let page = snapshot.runtime.unwrap();
+    assert_eq!(page.scene, "Arena");
+    assert_eq!(page.total, 39);
+    assert_eq!(page.nodes.len(), 32);
+    assert_eq!(page.nodes[2].depth, 2);
+    assert_eq!(page.nodes[2].parent_id, Some(page.nodes[1].key.id));
+    let key = page.nodes[2].key;
+    session
+        .debug_command(DebugCommand::RuntimeSelect {
+            session: snapshot.session,
+            key,
+        })
+        .unwrap();
+    let selected = session
+        .telemetry()
+        .inspection
+        .runtime
+        .unwrap()
+        .selected
+        .unwrap();
+    assert_eq!(selected.path, "Arena/Wave/Boss");
+    assert_eq!(selected.node.key, key);
+    assert_eq!(selected.tags, ["boss"]);
+    assert_eq!(selected.transform.position, [918.0, 442.0]);
+    assert_eq!(selected.properties["attack_delay"], 1.25);
+
+    session
+        .debug_command(DebugCommand::RuntimePage {
+            session: snapshot.session,
+            offset: 32,
+        })
+        .unwrap();
+    let next = session.telemetry().inspection.runtime.unwrap();
+    assert_eq!(next.offset, 32);
+    assert_eq!(next.nodes.len(), 7);
+    assert_eq!(next.selected.unwrap().node.key, key);
+}
+
+#[test]
+fn runtime_selection_rejects_wrong_session_graph_and_destroyed_nodes() {
+    let (_root, session) = project(
+        r#"
+        level = scene.new('Arena')
+        target = level:createNode('Node2D', 'Boss')
+        scene.switch(level)
+    "#,
+    );
+    session.tick(0.016).unwrap();
+    let snapshot = session.telemetry().inspection;
+    let key = snapshot.runtime.as_ref().unwrap().nodes[1].key;
+    assert!(session
+        .debug_command(DebugCommand::RuntimeSelect {
+            session: snapshot.session + 1,
+            key,
+        })
+        .is_err());
+    assert!(session
+        .debug_command(DebugCommand::RuntimeSelect {
+            session: snapshot.session,
+            key: kairo_core::inspector::RuntimeNodeKey {
+                graph: key.graph + 1,
+                id: key.id,
+            },
+        })
+        .is_err());
+    assert!(session
+        .telemetry()
+        .inspection
+        .runtime
+        .unwrap()
+        .selected
+        .is_none());
+    session
+        .debug_command(DebugCommand::RuntimeSelect {
+            session: snapshot.session,
+            key,
+        })
+        .unwrap();
+    session.lua().load("target:destroy()").exec().unwrap();
+    let page = session.telemetry().inspection.runtime.unwrap();
+    assert!(page.selected_missing);
+    assert!(page.selected.is_none());
+    assert!(session
+        .debug_command(DebugCommand::RuntimeSelect {
+            session: snapshot.session,
+            key,
+        })
+        .is_err());
+    assert!(session
+        .debug_command(DebugCommand::RuntimePage {
+            session: snapshot.session + 1,
+            offset: 32,
+        })
+        .is_err());
+}
+
+#[test]
+fn runtime_node_edits_require_explicit_permission_expected_value_and_valid_type() {
+    let (_root, session) = project(
+        r#"
+        level = scene.new('Arena')
+        target = level:createNode('Node2D', 'Boss')
+        target:setProperty('attack_delay', 1.25)
+        target:setProperty('health', 438)
+        target:exposeInspector('property.attack_delay', {kind='number', writable=true, min=0.1, max=5})
+        target:exposeInspector('property.health', {kind='number'})
+        target:exposeInspector('position', {kind='vector', writable=true, min=-1000, max=1000})
+        scene.switch(level)
+    "#,
+    );
+    session.tick(0.016).unwrap();
+    let snapshot = session.telemetry().inspection;
+    let key = snapshot.runtime.as_ref().unwrap().nodes[1].key;
+    session
+        .debug_command(DebugCommand::RuntimeSelect {
+            session: snapshot.session,
+            key,
+        })
+        .unwrap();
+    let details = session
+        .telemetry()
+        .inspection
+        .runtime
+        .unwrap()
+        .selected
+        .unwrap();
+    let delay = details
+        .exposed
+        .iter()
+        .find(|f| f.path == "property.attack_delay")
+        .unwrap();
+    let update = kairo_core::inspector::InspectUpdate {
+        session: snapshot.session,
+        path: delay.path.clone(),
+        expected: delay.value.clone(),
+        value: serde_json::json!(0.8),
+    };
+    session
+        .debug_command(DebugCommand::RuntimeEdit {
+            key,
+            update: Box::new(update.clone()),
+        })
+        .unwrap();
+    session
+        .lua()
+        .load("assert(target:getProperty('attack_delay') == 0.8)")
+        .exec()
+        .unwrap();
+    assert!(session
+        .debug_command(DebugCommand::RuntimeEdit {
+            key,
+            update: Box::new(update.clone())
+        })
+        .is_err());
+    let changed = kairo_core::inspector::InspectUpdate {
+        expected: serde_json::json!(0.8),
+        value: serde_json::json!(9),
+        ..update.clone()
+    };
+    assert!(session
+        .debug_command(DebugCommand::RuntimeEdit {
+            key,
+            update: Box::new(changed)
+        })
+        .is_err());
+    let wrong_type = kairo_core::inspector::InspectUpdate {
+        expected: serde_json::json!(0.8),
+        value: serde_json::json!("fast"),
+        ..update.clone()
+    };
+    assert!(session
+        .debug_command(DebugCommand::RuntimeEdit {
+            key,
+            update: Box::new(wrong_type)
+        })
+        .is_err());
+    let read_only = kairo_core::inspector::InspectUpdate {
+        path: "property.health".into(),
+        expected: serde_json::json!(438),
+        value: serde_json::json!(1000),
+        ..update.clone()
+    };
+    assert!(session
+        .debug_command(DebugCommand::RuntimeEdit {
+            key,
+            update: Box::new(read_only)
+        })
+        .is_err());
+    let wrong_session = kairo_core::inspector::InspectUpdate {
+        session: snapshot.session + 1,
+        ..update.clone()
+    };
+    assert!(session
+        .debug_command(DebugCommand::RuntimeEdit {
+            key,
+            update: Box::new(wrong_session)
+        })
+        .is_err());
+    let position = kairo_core::inspector::InspectUpdate {
+        path: "position".into(),
+        expected: serde_json::json!([0.0, 0.0]),
+        value: serde_json::json!([12.0, 34.0]),
+        ..update
+    };
+    session
+        .debug_command(DebugCommand::RuntimeEdit {
+            key,
+            update: Box::new(position),
+        })
+        .unwrap();
+    session
+        .lua()
+        .load("assert(target.position.x == 12 and target.position.y == 34)")
+        .exec()
+        .unwrap();
+    session.lua().load("target:destroy()").exec().unwrap();
+    let stale = kairo_core::inspector::InspectUpdate {
+        session: snapshot.session,
+        path: "property.attack_delay".into(),
+        expected: serde_json::json!(0.8),
+        value: serde_json::json!(1.0),
+    };
+    assert!(session
+        .debug_command(DebugCommand::RuntimeEdit {
+            key,
+            update: Box::new(stale)
+        })
+        .is_err());
 }
 
 #[test]

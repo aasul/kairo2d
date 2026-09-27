@@ -12,9 +12,19 @@ use anyhow::{ensure, Result};
 use eframe::egui::{self, Color32, Key, Modifiers, RichText};
 use kairo_project::{SettingsDocument, Template};
 use serde::{Deserialize, Serialize};
+use std::collections::VecDeque;
 use std::ffi::OsString;
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
+
+#[derive(Clone, Copy, Default, PartialEq, Eq)]
+enum ProfilerSort {
+    #[default]
+    Total,
+    Average,
+    Maximum,
+    Calls,
+}
 
 #[derive(Clone)]
 pub(crate) enum Action {
@@ -110,6 +120,8 @@ pub struct KairoApp {
     settings_pending_restart: bool,
     telemetry: Option<kairo_core::profiler::Telemetry>,
     show_profiler: bool,
+    profiler_sort: ProfilerSort,
+    profile_history: VecDeque<f64>,
     show_replay: bool,
     bookmark_panel: crate::bookmark_panel::BookmarkPanel,
     show_link: bool,
@@ -169,6 +181,8 @@ impl KairoApp {
             bookmark_panel: Default::default(),
             telemetry: None,
             show_profiler: false,
+            profiler_sort: ProfilerSort::default(),
+            profile_history: VecDeque::new(),
             show_replay: false,
             show_link: false,
             link: Default::default(),
@@ -210,6 +224,7 @@ impl KairoApp {
         self.process = None;
         self.run_link = None;
         self.telemetry = None;
+        self.profile_history.clear();
         self.settings_pending_restart = false;
         self.show_overview = self.preferences.overview_on_open;
         self.restart_pending = false;
@@ -560,6 +575,7 @@ impl KairoApp {
         self.run_link = None;
         self.workspace = None;
         self.telemetry = None;
+        self.profile_history.clear();
         self.show_link = false;
         self.show_replay = false;
         self.show_profiler = false;
@@ -686,6 +702,7 @@ impl KairoApp {
             arguments.push(output.into_os_string());
         }
         self.telemetry = None;
+        self.profile_history.clear();
         self.process = Some(Process::start(
             &runtime,
             workspace.files.root(),
@@ -705,6 +722,8 @@ impl KairoApp {
         let can_start = project_open && self.process.is_none();
         let mut command = None;
         let mut action = None;
+        let profiler_sort = &mut self.profiler_sort;
+        let profile_history = &self.profile_history;
         if self.show_profiler {
             egui::Window::new("Profiler")
                 .open(&mut self.show_profiler)
@@ -723,17 +742,46 @@ impl KairoApp {
                     }
                     if let Some(sample) = &sample {
                         let p = &sample.profile;
-                        ui.label(format!("{:.0} FPS  |  {:.2} ms/frame", p.fps, p.frame_ms));
+                        ui.label(format!("{:.0} FPS  |  {:.2} ms frame interval", p.fps, p.frame_ms));
+                        if profile_history.len() > 1 {
+                            let (rect, _) = ui.allocate_exact_size(
+                                egui::vec2(ui.available_width().max(120.0), 56.0),
+                                egui::Sense::hover(),
+                            );
+                            let ceiling = profile_history.iter().copied().fold(16.67_f64, f64::max);
+                            let points = profile_history.iter().enumerate().map(|(index, ms)| {
+                                egui::pos2(
+                                    rect.left() + rect.width() * index as f32 / (profile_history.len() - 1) as f32,
+                                    rect.bottom() - rect.height() * (*ms / ceiling).clamp(0.0, 1.0) as f32,
+                                )
+                            }).collect();
+                            ui.painter().add(egui::Shape::line(points, egui::Stroke::new(1.5_f32, Color32::LIGHT_GREEN)));
+                        }
                         egui::Grid::new("profile-values")
                             .num_columns(2)
                             .show(ui, |ui| {
                                 for (name, value) in [
-                                    ("Update callbacks", format!("{:.3} ms", p.update_ms)),
+                                    ("Simulation CPU", format!("{:.3} ms", p.tick_ms)),
+                                    ("Update total", format!("{:.3} ms", p.update_ms)),
                                     ("Draw / game UI", format!("{:.3} ms", p.draw_ms)),
                                     ("Physics", format!("{:.3} ms", p.physics_ms)),
+                                    ("Game callbacks", format!("{:.3} ms", p.game_ms)),
+                                    ("Scene dispatch", format!("{:.3} ms", p.scene_ms)),
+                                    ("UI", format!("{:.3} ms", p.ui_ms)),
+                                    ("Audio maintenance", format!("{:.3} ms", p.audio_ms)),
+                                    ("Renderer call", format!("{:.3} ms", p.render_ms)),
                                     ("Draw commands", p.commands.to_string()),
-                                    ("Batches", p.batches.to_string()),
+                                    ("Draw calls", p.batches.to_string()),
+                                    ("Sprites submitted", p.sprites_submitted.to_string()),
                                     ("Vertices", p.vertices.to_string()),
+                                    ("Lua callbacks", p.lua_callbacks.to_string()),
+                                    ("Physics bodies", p.active_bodies.to_string()),
+                                    ("Active nodes", p.active_nodes.to_string()),
+                                    ("Colliders", p.active_colliders.to_string()),
+                                    ("Active particles", p.active_particles.to_string()),
+                                    ("Particle emitters", p.active_emitters.to_string()),
+                                    ("Audio voices", p.audio_voices.to_string()),
+                                    ("Loaded sounds", p.loaded_audio.to_string()),
                                     ("Textures", p.textures.to_string()),
                                     (
                                         "Decoded texture memory",
@@ -746,6 +794,48 @@ impl KairoApp {
                                     ui.end_row();
                                 }
                             });
+                        if p.profiling_enabled {
+                            ui.separator();
+                            ui.strong("Lua callbacks in sampled frame");
+                            ui.horizontal(|ui| {
+                                ui.label("Sort:");
+                                for (label, sort) in [
+                                    ("Total", ProfilerSort::Total),
+                                    ("Average", ProfilerSort::Average),
+                                    ("Max", ProfilerSort::Maximum),
+                                    ("Calls", ProfilerSort::Calls),
+                                ] {
+                                    ui.selectable_value(profiler_sort, sort, label);
+                                }
+                            });
+                            let mut callbacks = p.callback_samples.clone();
+                            callbacks.sort_by(|a, b| {
+                                let order = match profiler_sort {
+                                    ProfilerSort::Total => b.total_ms.total_cmp(&a.total_ms),
+                                    ProfilerSort::Average => b.average_ms().total_cmp(&a.average_ms()),
+                                    ProfilerSort::Maximum => b.max_ms.total_cmp(&a.max_ms),
+                                    ProfilerSort::Calls => b.calls.cmp(&a.calls),
+                                };
+                                order.then_with(|| a.script.cmp(&b.script)).then_with(|| a.node_path.cmp(&b.node_path))
+                            });
+                            egui::Grid::new("lua-callback-profile").striped(true).show(ui, |ui| {
+                                for heading in ["Callback", "Calls", "Total", "Avg", "Max"] { ui.strong(heading); }
+                                ui.end_row();
+                                for entry in &callbacks {
+                                    ui.label(format!("{}:{} [{} / {}]", entry.script, entry.callback, entry.scene, entry.node_path));
+                                    ui.monospace(entry.calls.to_string());
+                                    ui.monospace(format!("{:.3}", entry.total_ms));
+                                    ui.monospace(format!("{:.3}", entry.average_ms()));
+                                    ui.monospace(format!("{:.3}", entry.max_ms));
+                                    ui.end_row();
+                                }
+                            });
+                            if p.callback_samples_dropped > 0 {
+                                ui.small(format!("{} callback calls omitted from this sample; the busiest recorded callbacks are shown.", p.callback_samples_dropped));
+                            }
+                        } else {
+                            ui.small("Choose the Debug build profile and restart the game to collect callback timings.");
+                        }
                         if !running {
                             ui.label("Last sample, not live data.");
                         }
@@ -754,7 +844,7 @@ impl KairoApp {
                             "Waiting for runtime telemetry. Inspect the Console if startup failed.",
                         );
                     }
-                    ui.small("Samples arrive at 5 Hz. GPU time is not measured.");
+                    ui.small("Samples arrive at 5 Hz. Timings are CPU wall time and may overlap; GPU time is not measured.");
                 });
         }
         if self.show_replay {
@@ -823,6 +913,13 @@ impl KairoApp {
             for line in process.drain() {
                 if let Some(json) = line.strip_prefix("@kairo:telemetry ") {
                     if let Ok(sample) = serde_json::from_str(json) {
+                        let sample: kairo_core::profiler::Telemetry = sample;
+                        if sample.profile.frame_ms.is_finite() {
+                            self.profile_history.push_back(sample.profile.frame_ms);
+                            if self.profile_history.len() > 60 {
+                                self.profile_history.pop_front();
+                            }
+                        }
                         self.telemetry = Some(sample);
                     }
                 } else {
@@ -842,6 +939,13 @@ impl KairoApp {
                 for line in process.drain() {
                     if let Some(json) = line.strip_prefix("@kairo:telemetry ") {
                         if let Ok(sample) = serde_json::from_str(json) {
+                            let sample: kairo_core::profiler::Telemetry = sample;
+                            if sample.profile.frame_ms.is_finite() {
+                                self.profile_history.push_back(sample.profile.frame_ms);
+                                if self.profile_history.len() > 60 {
+                                    self.profile_history.pop_front();
+                                }
+                            }
                             self.telemetry = Some(sample);
                         }
                     } else {

@@ -205,6 +205,43 @@ impl GameSession {
                 Ok(())
             }
             DebugCommand::Inspect { update } => inspector::apply(&self.lua, *update),
+            DebugCommand::RuntimePage { session, offset } => {
+                ensure!(
+                    session == self.state.borrow().inspection_session,
+                    "stale runtime session after reload"
+                );
+                self.state.borrow_mut().runtime_offset = offset;
+                Ok(())
+            }
+            DebugCommand::RuntimeSelect { session, key } => {
+                ensure!(
+                    session == self.state.borrow().inspection_session,
+                    "stale runtime session after reload"
+                );
+                let scenes: Table = self.lua.globals().get("scene")?;
+                let valid: bool = scenes
+                    .get::<mlua::Function>("_runtimeContains")?
+                    .call((key.graph, key.id))?;
+                ensure!(
+                    valid,
+                    "runtime node is stale or belongs to another active scene"
+                );
+                self.state.borrow_mut().runtime_selected = Some(key);
+                Ok(())
+            }
+            DebugCommand::RuntimeEdit { key, update } => {
+                ensure!(
+                    update.session == self.state.borrow().inspection_session,
+                    "stale runtime session after reload"
+                );
+                let scenes: Table = self.lua.globals().get("scene")?;
+                scenes.get::<mlua::Function>("_runtimeEdit")?.call::<()>((
+                    key.graph,
+                    key.id,
+                    self.lua.to_value(&*update)?,
+                ))?;
+                Ok(())
+            }
             DebugCommand::Scene {
                 session,
                 operation,
@@ -229,12 +266,18 @@ impl GameSession {
                 physics,
                 bounds,
                 velocities,
+                origins,
+                names,
+                camera,
             } => {
                 let mut state = self.state.borrow_mut();
                 state.debug_draw = kairo_core::debug_draw::DebugDraw {
                     physics,
                     bounds,
                     velocities,
+                    origins,
+                    names,
+                    camera,
                 };
                 Ok(())
             }
@@ -266,24 +309,34 @@ impl GameSession {
     pub fn telemetry(&self) -> kairo_core::profiler::Telemetry {
         use kairo_core::profiler::{ReplayStatus, Telemetry};
         self.arm_watchdog();
-        let id = self.state.borrow().inspection_session;
-        let inspection = inspector::snapshot(&self.lua, id).unwrap_or_else(|error| {
-            let error: String = format!("{error:#}").chars().take(240).collect();
-            kairo_core::inspector::InspectSnapshot {
-                session: id,
-                error: Some(error),
-                ..Default::default()
-            }
-        });
+        let (id, offset, selected) = {
+            let state = self.state.borrow();
+            (
+                state.inspection_session,
+                state.runtime_offset,
+                state.runtime_selected,
+            )
+        };
+        let inspection =
+            inspector::snapshot(&self.lua, id, offset, selected).unwrap_or_else(|error| {
+                let error: String = format!("{error:#}").chars().take(240).collect();
+                kairo_core::inspector::InspectSnapshot {
+                    session: id,
+                    error: Some(error),
+                    ..Default::default()
+                }
+            });
         let state = self.state.borrow();
         let infos = state.replay.timeline.infos();
+        let mut profile = state.profile.for_telemetry();
+        profile.active_nodes = inspection.scenes.active_nodes;
         Telemetry {
             inspection,
             mixer: state.audio.mixer(),
             tools_enabled: state.development_tools,
             bookmarks: state.replay.bookmarks.infos(),
             debug_draw: state.debug_draw,
-            profile: state.profile.clone(),
+            profile,
             replay: ReplayStatus {
                 recording: state.replay.enabled,
                 paused: state.replay.paused,
@@ -346,24 +399,52 @@ impl GameSession {
             .context("global 'game' must be a table")?;
         match game.get::<Value>(name)? {
             Value::Nil => {}
-            Value::Function(function) => function
-                .call::<()>(arguments.clone())
-                .with_context(|| format!("Kairo2D Lua Error in game.{name}"))?,
+            Value::Function(function) => {
+                let profiling = self.state.borrow().profile.profiling_enabled;
+                let start = profiling.then(Instant::now);
+                let result = function.call::<()>(arguments.clone());
+                if let Some(start) = start {
+                    let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
+                    let mut state = self.state.borrow_mut();
+                    state.profile.game_ms += elapsed_ms;
+                    state
+                        .profile
+                        .record_callback("main.lua", "", "", name, elapsed_ms);
+                }
+                result.with_context(|| format!("Kairo2D Lua Error in game.{name}"))?;
+            }
             _ => bail!("game.{name} must be a function or nil"),
         }
         let scenes: Table = self.lua.globals().get("scene")?;
         let mut forwarded = arguments;
         forwarded.push_front(Value::String(self.lua.create_string(name)?));
-        scenes
+        let start = self
+            .state
+            .borrow()
+            .profile
+            .profiling_enabled
+            .then(Instant::now);
+        let result = scenes
             .get::<mlua::Function>("_dispatch")?
             .call::<()>(forwarded)
-            .with_context(|| format!("Kairo2D Lua Error in scene.{name}"))
+            .with_context(|| format!("Kairo2D Lua Error in scene.{name}"));
+        if let Some(start) = start {
+            self.state.borrow_mut().profile.scene_ms += start.elapsed().as_secs_f64() * 1000.0;
+        }
+        result
     }
 
     pub fn tick(&self, dt: f32) -> Result<()> {
         kairo_core::finite("delta time", &[dt])?;
         ensure!(dt >= 0.0, "delta time cannot be negative");
+        let tick_start = self
+            .state
+            .borrow()
+            .profile
+            .profiling_enabled
+            .then(Instant::now);
         self.arm_watchdog();
+        self.state.borrow_mut().profile.begin_frame();
         replay::before(&self.lua)?;
         let advancing = {
             let mut state = self.state.borrow_mut();
@@ -392,7 +473,17 @@ impl GameSession {
             state.actions.sample(&input);
         }
         self.arm_watchdog();
-        ui::call(&self.lua, "_update", ())?;
+        let ui_start = self
+            .state
+            .borrow()
+            .profile
+            .profiling_enabled
+            .then(Instant::now);
+        let ui_result = ui::call(&self.lua, "_update", ());
+        if let Some(start) = ui_start {
+            self.state.borrow_mut().profile.ui_ms += start.elapsed().as_secs_f64() * 1000.0;
+        }
+        ui_result?;
         let update_start = Instant::now();
         if advancing {
             let state = self.state.borrow();
@@ -438,7 +529,17 @@ impl GameSession {
             state.profile.update_ms = update_ms;
             state.profile.frame_ms = f64::from(frame_dt) * 1000.0;
             state.profile.fps = state.fps;
+            let audio_start = state.profile.profiling_enabled.then(Instant::now);
             state.audio.prune();
+            if let Some(start) = audio_start {
+                state.profile.audio_ms += start.elapsed().as_secs_f64() * 1000.0;
+            }
+            state.profile.active_bodies = state.physics.body_count();
+            state.profile.active_colliders = state.physics.collider_count();
+            state.profile.active_particles = state.particle_live_count.get();
+            state.profile.active_emitters = state.particle_count.get();
+            state.profile.audio_voices = state.audio.voice_count();
+            state.profile.loaded_audio = state.audio.sound_count();
             state.frame.reset();
             state.color = Color::WHITE;
             state.camera = Camera::default();
@@ -485,7 +586,17 @@ impl GameSession {
                 }
             }
             self.arm_watchdog();
-            ui::call(&self.lua, "_draw", ()).context("Kairo UI draw error")
+            let ui_start = self
+                .state
+                .borrow()
+                .profile
+                .profiling_enabled
+                .then(Instant::now);
+            let ui_result = ui::call(&self.lua, "_draw", ()).context("Kairo UI draw error");
+            if let Some(start) = ui_start {
+                self.state.borrow_mut().profile.ui_ms += start.elapsed().as_secs_f64() * 1000.0;
+            }
+            ui_result
         });
         let mut state = self
             .state
@@ -494,6 +605,18 @@ impl GameSession {
         state.drawing = false;
         state.profile.draw_ms = draw_start.elapsed().as_secs_f64() * 1000.0;
         state.profile.commands = state.frame.commands.len();
+        state.profile.sprites_submitted = state
+            .frame
+            .commands
+            .iter()
+            .filter(|command| {
+                matches!(command,
+                    kairo_core::DrawCommand::Quad(quad) if quad.texture.is_some()
+                ) || matches!(command,
+                    kairo_core::DrawCommand::AffineQuad { quad, .. } if quad.texture.is_some()
+                )
+            })
+            .count();
         state.profile.textures = state.assets.texture_count();
         state.profile.texture_bytes = state.assets.texture_bytes();
         if result.is_ok() {
@@ -521,6 +644,9 @@ impl GameSession {
         state.input.clear_edges();
         if result.is_err() {
             state.debug_ui.windows.clear();
+        }
+        if let Some(start) = tick_start {
+            state.profile.tick_ms = start.elapsed().as_secs_f64() * 1000.0;
         }
         result
     }

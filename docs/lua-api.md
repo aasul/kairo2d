@@ -543,17 +543,26 @@ See [save data](save-data.md).
 ```lua
 profiler.show(true)
 local p = profiler.stats()
--- p.fps, frame_ms, update_ms, draw_ms, physics_ms,
--- commands, batches, vertices, textures, texture_bytes, reloads
+-- p.fps, frame_ms, tick_ms, update_ms, draw_ms, physics_ms,
+-- game_ms, scene_ms, ui_ms, audio_ms, render_ms,
+-- sprites_submitted, active_bodies, active_colliders,
+-- active_particles, audio_voices, loaded_audio, textures,
+-- lua_callbacks, callback_samples, callback_samples_dropped
 ```
 
-Measured CPU timings and most recently available counters, not GPU timestamps.
-Update/draw timings include relevant Kairo Lua-facing services as documented in
-[editor](editor.md); renderer counters can lag the current Lua callback by one
-presented frame. Texture bytes estimate decoded CPU storage, not total VRAM/RAM.
-The overlay uses bitmap text. Editor Tools > Profiler receives telemetry from a
-runtime started by the editor. There is no `debug.showProfiler` module: Lua's
-standard debug library is deliberately absent; the public module is `profiler`.
+`frame_ms` is the supplied frame interval; `tick_ms` measures simulation CPU wall
+time. The phase timings can overlap: scene dispatch is included inside update or
+draw, and UI drawing is included inside draw. `render_ms` measures the renderer
+call from the windowed runtime. None of these are GPU timestamps. Renderer
+counters can lag the current Lua callback by one presented frame. Texture bytes
+estimate decoded CPU storage, not total VRAM/RAM. The callback list records at
+most 128 distinct callbacks during the frame and sends the 32 with the highest
+total time to Editor; `callback_samples_dropped` counts omitted calls. Each
+callback entry has `script`, `scene`, `node_path`, `callback`, `calls`, `total_ms`
+and `max_ms`. Divide total by calls for the average. Callback timing is enabled
+by the Debug build profile or an explicit profile override. `profiler.show`
+controls the runtime bitmap overlay; `debug.showProfiler` is an alias. Lua's
+standard debug library is absent. See [profiling](profiler.md).
 
 ## ui and debugui
 

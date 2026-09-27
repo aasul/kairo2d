@@ -494,4 +494,64 @@ mod tests {
         assert!(pull(&mut b).commands.is_empty());
         assert!(host.command(u64::MAX, DebugCommand::Pause).is_err());
     }
+
+    #[test]
+    fn authenticated_link_carries_runtime_tree_and_selection_command() {
+        use kairo_core::inspector::RuntimeTreePage;
+        use kairo_core::scene_graph::{NodeKind, SceneGraph};
+
+        let root = tempfile::tempdir().unwrap();
+        std::fs::write(root.path().join("main.lua"), "-- test project").unwrap();
+        let key = SessionKey::generate().unwrap();
+        let host = Host::start(
+            root.path(),
+            "127.0.0.1:0".parse().unwrap(),
+            key.clone(),
+            validate,
+        )
+        .unwrap();
+        let socket = TcpStream::connect(host.address).unwrap();
+        let address = socket.local_addr().unwrap();
+        let mut channel = Channel::handshake(socket, &key, true).unwrap();
+        pull(&mut channel);
+        let mut graph = SceneGraph::new("Arena").unwrap();
+        let id = graph
+            .create(graph.root(), NodeKind::Node2D, "Boss")
+            .unwrap();
+        let key = kairo_core::inspector::RuntimeNodeKey {
+            graph: graph.graph_id(),
+            id: graph.node(id).unwrap().data().id,
+        };
+        let sample = kairo_core::profiler::Telemetry {
+            tools_enabled: true,
+            inspection: kairo_core::inspector::InspectSnapshot {
+                session: 42,
+                runtime: Some(RuntimeTreePage::from_graph(&graph, 0, Some(key)).unwrap()),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let mut status = Pull::new(None, None, Vec::new());
+        status.telemetry = Some(sample);
+        channel.send(&status).unwrap();
+        channel.receive::<Exchange>().unwrap().validate().unwrap();
+        channel.receive_bundle().unwrap();
+        let peer = host
+            .peers()
+            .into_iter()
+            .find(|p| p.address == address)
+            .unwrap();
+        let peer_id = peer.id;
+        let page = peer.telemetry.unwrap().inspection.runtime.unwrap();
+        assert_eq!(page.selected.unwrap().path, "Arena/Boss");
+        let command_id = host
+            .command(peer_id, DebugCommand::RuntimeSelect { session: 42, key })
+            .unwrap();
+        let exchange = pull(&mut channel);
+        assert_eq!(exchange.commands[0].id, command_id);
+        assert!(matches!(
+            &exchange.commands[0].command,
+            DebugCommand::RuntimeSelect { session: 42, key: selected } if *selected == key
+        ));
+    }
 }

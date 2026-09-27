@@ -31,6 +31,8 @@ backend handles to scripts. Prefer a concrete service over a trait without a use
 ## Shared API metadata
 
 Edit docs/lua-api.json for function signatures/descriptions/examples, then run
-`python scripts/generate_api_docs.py`. The source audit checks bindings against
-metadata; the generated reference must pass `--check`. Both checks are source
+`python scripts/generate_api_docs.py`. The generator also writes the LuaLS
+declarations for profiler and debug functions from this metadata. The source
+audit checks bindings against metadata; the generated reference and declarations
+must pass `--check`. Both checks are source
 consistency checks, not a proof of native call correctness.

@@ -1,8 +1,13 @@
 use crate::tabs::Tab;
-use anyhow::{ensure, Result};
+use anyhow::{ensure, Context, Result};
 use eframe::egui;
+use kairo_core::inspector::{
+    apply_scene_field, runtime_field_value, InspectNode, RuntimeNodeDetails,
+};
+use kairo_core::scene_graph::SceneGraph;
 use kairo_core::Config;
 use kairo_project::{ProjectFiles, ProjectNode};
+use std::collections::BTreeMap;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
@@ -30,6 +35,91 @@ pub enum BrowserAction {
 }
 
 impl Workspace {
+    fn authored_runtime_node(
+        &self,
+        source: &str,
+        details: &RuntimeNodeDetails,
+    ) -> Result<SceneGraph> {
+        let path = Path::new(source);
+        ensure!(
+            path.extension().is_some_and(|ext| ext == "scene"),
+            "runtime source is not a scene file"
+        );
+        let bytes = self.files.read(path)?;
+        let graph = SceneGraph::from_json(std::str::from_utf8(&bytes)?)?;
+        let id = graph
+            .find_by_file_id(details.node.key.id)
+            .context("runtime node is not present in the scene file")?;
+        ensure!(
+            graph.path(id)? == details.path,
+            "scene node path changed; refresh before applying"
+        );
+        ensure!(
+            graph.node(id)?.data().kind == details.node.kind,
+            "scene node type changed"
+        );
+        Ok(graph)
+    }
+
+    pub fn runtime_scene_values(
+        &self,
+        source: &str,
+        details: &RuntimeNodeDetails,
+    ) -> Result<BTreeMap<String, serde_json::Value>> {
+        let graph = self.authored_runtime_node(source, details)?;
+        let id = graph
+            .find_by_file_id(details.node.key.id)
+            .context("scene node is missing")?;
+        details
+            .exposed
+            .iter()
+            .map(|field| {
+                Ok((
+                    field.path.clone(),
+                    runtime_field_value(graph.node(id)?.data(), &field.path).with_context(
+                        || format!("'{}' is not stored in the scene file", field.path),
+                    )?,
+                ))
+            })
+            .collect()
+    }
+
+    pub fn apply_runtime_to_scene(
+        &mut self,
+        source: &str,
+        details: &RuntimeNodeDetails,
+        field: &InspectNode,
+        expected_scene: serde_json::Value,
+    ) -> Result<()> {
+        let path = Path::new(source);
+        ensure!(
+            !self
+                .tabs
+                .iter()
+                .any(|tab| tab.path() == path && tab.dirty()),
+            "save or close the modified scene tab before applying a runtime value"
+        );
+        let mut graph = self.authored_runtime_node(source, details)?;
+        let id = graph
+            .find_by_file_id(details.node.key.id)
+            .context("scene node is missing")?;
+        apply_scene_field(
+            &mut graph,
+            id,
+            &field.path,
+            expected_scene,
+            field.value.clone(),
+            field.metadata.clone(),
+        )?;
+        self.files.write(path, graph.to_json()?.as_bytes())?;
+        for tab in &mut self.tabs {
+            if tab.path() == path {
+                *tab = Tab::open(&self.files, path.to_path_buf())?;
+            }
+        }
+        self.refresh()
+    }
+
     pub fn open(root: &Path) -> Result<Self> {
         let files = ProjectFiles::open(root)?;
         ensure!(

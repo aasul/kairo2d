@@ -8,6 +8,12 @@ pub struct DebugDraw {
     pub physics: bool,
     pub bounds: bool,
     pub velocities: bool,
+    #[serde(default)]
+    pub origins: bool,
+    #[serde(default)]
+    pub names: bool,
+    #[serde(default)]
+    pub camera: bool,
 }
 #[derive(Clone, Copy, Debug)]
 pub struct DebugSegment {
