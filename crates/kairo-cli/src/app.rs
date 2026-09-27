@@ -377,6 +377,7 @@ impl App {
             renderer.render(&frame, &self.error_assets)?;
         } else if let Some(session) = &self.session {
             let mut state = session.state().borrow_mut();
+            let render_start = state.profile.profiling_enabled.then(Instant::now);
             let stats = if let Some(warning) = &self.reload_warning {
                 let mut frame = state.frame.clone();
                 frame.commands.push(DrawCommand::Viewport(None));
@@ -412,6 +413,9 @@ impl App {
             };
             state.profile.batches = stats.draw_calls;
             state.profile.vertices = stats.vertices;
+            if let Some(start) = render_start {
+                state.profile.render_ms = start.elapsed().as_secs_f64() * 1000.0;
+            }
         }
         if (self.shutdown.is_some() || self.link.is_some())
             && self.last_telemetry.elapsed() >= Duration::from_millis(200)

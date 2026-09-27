@@ -7,6 +7,7 @@ local callbacks = {"enter", "leave", "suspend", "resume", "update", "draw",
 local scriptCallbacks = {"ready", "update", "fixedUpdate", "draw", "onDestroy",
     "onCollision", "onTriggerEnter", "onTriggerExit", "onClick"}
 local pressedControl
+local profile_invoke = profiler._invoke
 
 local function named(name)
     assert(type(name) == "string" and #name > 0 and #name <= 64, "scene name must contain 1..64 bytes")
@@ -14,7 +15,13 @@ local function named(name)
 end
 local function invoke(item, callback, ...)
     local fn = item and item[callback]
-    if fn then fn(item, ...) end
+    if fn then
+        if profile_invoke then
+            profile_invoke("@scene", item.name, item.name, callback, fn, item, ...)
+        else
+            fn(item, ...)
+        end
+    end
 end
 local function find(name)
     return assert(registered[named(name)], "scene '" .. name .. "' is not registered")
@@ -41,12 +48,19 @@ function scene.load(path)
     local graph = sceneGraph.load(path)
     local item = scene.new(graph:name())
     item.graph, item.root = graph, graph:root()
+    item.source = path
     return item
 end
 local function invoke_script(item, record, callback, ...)
     local fn = record.callbacks[callback]
     if not fn then return end
-    local ok, message = pcall(fn, record.state, ...)
+    local ok, message
+    if profile_invoke then
+        ok, message = pcall(profile_invoke, record.script, item.name, record.path,
+            callback, fn, record.state, ...)
+    else
+        ok, message = pcall(fn, record.state, ...)
+    end
     if not ok then
         error(("scene '%s', node '%s', script '%s', callback '%s': %s")
             :format(item.name, record.path, record.script, callback, tostring(message)), 0)
@@ -176,10 +190,31 @@ function scene.reload() enqueue("reload") end
 function scene.current() return stack[#stack] and stack[#stack].name end
 function scene.info()
     local names, active = {}, {}
+    local active_nodes = 0
     for name in pairs(registered) do names[#names + 1] = name end
     table.sort(names)
-    for i, item in ipairs(stack) do active[i] = item.name end
-    return {registered = names, stack = active, current = scene.current() or ""}
+    for i, item in ipairs(stack) do
+        active[i] = item.name
+        if item.graph then active_nodes = active_nodes + item.graph:_nodeCount() end
+    end
+    return {registered = names, stack = active, current = scene.current() or "", active_nodes = active_nodes}
+end
+function scene._runtimeSnapshot(offset, graph_id, file_id)
+    local top = stack[#stack]
+    if not top or not top.graph then return nil end
+    local snapshot = top.graph:_runtimePage(offset, graph_id, file_id)
+    snapshot.source = top.source
+    return snapshot
+end
+function scene._runtimeContains(graph_id, file_id)
+    local top = stack[#stack]
+    return top ~= nil and top.graph ~= nil and top.graph:_runtimeContains(graph_id, file_id)
+end
+
+function scene._runtimeEdit(graph_id, file_id, update)
+    local top = stack[#stack]
+    assert(top and top.graph, "no active scene graph")
+    return top.graph:_runtimeEdit(graph_id, file_id, update)
 end
 function scene._physicsPaused()
     return stack[#stack] ~= nil and stack[#stack].pause_physics == true

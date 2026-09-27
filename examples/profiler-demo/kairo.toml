@@ -1,0 +1,7 @@
+[game]
+title = "Profiler Demo"
+width = 960
+height = 600
+
+[save]
+identity = "kairo-example-profiler-demo"

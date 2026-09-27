@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "name": "Arena",
+  "root": {
+    "id": 1,
+    "name": "Arena",
+    "kind": "Node",
+    "children": [
+      {
+        "id": 2,
+        "name": "Boss",
+        "kind": "Node2D",
+        "transform": {
+          "position": [480, 300],
+          "rotation": 0,
+          "scale": [1, 1],
+          "pivot": [0, 0]
+        },
+        "properties": {
+          "attack_delay": 1.25,
+          "health": 1000
+        }
+      }
+    ]
+  }
+}

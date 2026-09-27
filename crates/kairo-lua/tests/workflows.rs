@@ -123,8 +123,11 @@ fn particle_simulation_is_native_bounded_and_draws_into_the_frame_queue() {
     );
     session.tick(0.01).unwrap();
     assert_eq!(session.state().borrow().frame.commands.len(), 4);
+    assert_eq!(session.telemetry().profile.active_particles, 4);
+    assert_eq!(session.telemetry().profile.active_emitters, 1);
     session.tick(0.1).unwrap();
     assert!(session.state().borrow().frame.commands.is_empty());
+    assert_eq!(session.telemetry().profile.active_particles, 0);
 }
 
 #[test]

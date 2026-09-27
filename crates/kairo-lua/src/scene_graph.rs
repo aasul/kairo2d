@@ -96,6 +96,51 @@ impl UserData for GraphRef {
                 .name()
                 .to_owned())
         });
+        methods.add_method("_nodeCount", |_, this, ()| {
+            Ok(this.0.try_borrow().map_err(|_| borrowed())?.len())
+        });
+        methods.add_method(
+            "_runtimeContains",
+            |_, this, (graph_id, file_id): (u64, u64)| {
+                let graph = this.0.try_borrow().map_err(|_| borrowed())?;
+                Ok(graph.graph_id() == graph_id && graph.find_by_file_id(file_id).is_some())
+            },
+        );
+        methods.add_method(
+            "_runtimePage",
+            |lua, this, (offset, graph_id, file_id): (usize, Option<u64>, Option<u64>)| {
+                let graph = this.0.try_borrow().map_err(|_| borrowed())?;
+                let selected = graph_id
+                    .zip(file_id)
+                    .map(|(graph, id)| kairo_core::inspector::RuntimeNodeKey { graph, id });
+                let page =
+                    kairo_core::inspector::RuntimeTreePage::from_graph(&graph, offset, selected)
+                        .map_err(lua_error)?;
+                lua.to_value(&page)
+            },
+        );
+        methods.add_method(
+            "_runtimeEdit",
+            |lua, this, (graph_id, file_id, update): (u64, u64, Value)| {
+                let update: kairo_core::inspector::InspectUpdate = lua.from_value(update)?;
+                let session = this
+                    .1
+                    .try_borrow()
+                    .map_err(|_| borrowed())?
+                    .inspection_session;
+                let mut graph = this.0.try_borrow_mut().map_err(|_| borrowed())?;
+                kairo_core::inspector::apply_runtime_edit(
+                    &mut graph,
+                    kairo_core::inspector::RuntimeNodeKey {
+                        graph: graph_id,
+                        id: file_id,
+                    },
+                    &update,
+                    session,
+                )
+                .map_err(lua_error)
+            },
+        );
         methods.add_method("root", |_, this, ()| {
             let id = this.0.try_borrow().map_err(|_| borrowed())?.root();
             Ok(NodeRef {
@@ -228,8 +273,20 @@ impl UserData for GraphRef {
             let result = lua.create_table()?;
             for (index, (a, b)) in pairs.into_iter().enumerate() {
                 let pair = lua.create_table()?;
-                pair.set(1, NodeRef { graph: this.0.clone(), id: a })?;
-                pair.set(2, NodeRef { graph: this.0.clone(), id: b })?;
+                pair.set(
+                    1,
+                    NodeRef {
+                        graph: this.0.clone(),
+                        id: a,
+                    },
+                )?;
+                pair.set(
+                    2,
+                    NodeRef {
+                        graph: this.0.clone(),
+                        id: b,
+                    },
+                )?;
                 result.set(index + 1, pair)?;
             }
             Ok(result)
@@ -554,6 +611,17 @@ impl UserData for NodeRef {
                 .remove_property(this.id, &name)
                 .map_err(lua_error)
         });
+        methods.add_method(
+            "exposeInspector",
+            |lua, this, (path, metadata): (String, Value)| {
+                let metadata: kairo_core::inspector::InspectMetadata = lua.from_value(metadata)?;
+                this.graph
+                    .try_borrow_mut()
+                    .map_err(|_| borrowed())?
+                    .expose_inspector_field(this.id, &path, metadata)
+                    .map_err(lua_error)
+            },
+        );
         methods.add_method(
             "reparent",
             |_, this, (parent, index): (AnyUserData, Option<usize>)| {

@@ -14,23 +14,46 @@ struct ParticleEmitter {
     texture: Option<Texture>,
     state: SharedState,
     budget: Rc<Cell<usize>>,
+    live_count: Rc<Cell<usize>>,
+}
+impl ParticleEmitter {
+    fn sync_count(&self, before: usize) {
+        let total = self.live_count.get().saturating_sub(before);
+        self.live_count
+            .set(total.saturating_add(self.emitter.particles().len()));
+    }
 }
 impl Drop for ParticleEmitter {
     fn drop(&mut self) {
         self.budget.set(self.budget.get().saturating_sub(1));
+        self.live_count.set(
+            self.live_count
+                .get()
+                .saturating_sub(self.emitter.particles().len()),
+        );
     }
 }
 impl UserData for ParticleEmitter {
     fn add_methods<M: UserDataMethods<Self>>(methods: &mut M) {
         methods.add_method_mut("update", |_, this, dt: f32| {
-            this.emitter.update(dt).map_err(lua_error)
+            let before = this.emitter.particles().len();
+            this.emitter.update(dt).map_err(lua_error)?;
+            this.sync_count(before);
+            Ok(())
         });
-        methods.add_method_mut("emit", |_, this, count: usize| Ok(this.emitter.emit(count)));
+        methods.add_method_mut("emit", |_, this, count: usize| {
+            let before = this.emitter.particles().len();
+            let emitted = this.emitter.emit(count);
+            this.sync_count(before);
+            Ok(emitted)
+        });
         methods.add_method_mut("setPosition", |_, this, (x, y): (f32, f32)| {
             this.emitter.set_position(x, y).map_err(lua_error)
         });
         methods.add_method_mut("clear", |_, this, ()| {
+            let before = this.emitter.particles().len();
             this.emitter.clear();
+            this.sync_count(before);
             Ok(())
         });
         methods.add_method("count", |_, this, ()| Ok(this.emitter.particles().len()));
@@ -71,19 +94,23 @@ fn create(
     texture: Option<Texture>,
 ) -> mlua::Result<ParticleEmitter> {
     let emitter = Emitter::new(config).map_err(lua_error)?;
-    let budget = with_state(state, |state| {
+    let (budget, live_count) = with_state(state, |state| {
         anyhow::ensure!(
             state.particle_count.get() < 64,
             "particle emitter limit reached (64)"
         );
         state.particle_count.set(state.particle_count.get() + 1);
-        Ok(state.particle_count.clone())
+        Ok((
+            state.particle_count.clone(),
+            state.particle_live_count.clone(),
+        ))
     })?;
     Ok(ParticleEmitter {
         emitter,
         texture,
         state: state.clone(),
         budget,
+        live_count,
     })
 }
 pub(crate) fn register(lua: &Lua, state: &SharedState) -> mlua::Result<()> {

@@ -242,7 +242,7 @@
   {
     "signature": "profiler.stats()",
     "snippet": "local sample = profiler.stats()",
-    "description": "Read CPU phase timings and most recent render counters."
+    "description": "Read frame interval, CPU timings, runtime counters, and bounded per-callback samples. Callback timing is enabled by the Debug build profile."
   },
   {
     "signature": "random.seed(seed)",
@@ -470,6 +470,11 @@
     "description": "Set a serialized node property; supported scene node types read native render, camera, physics and audio properties."
   },
   {
+    "signature": "node:exposeInspector(field, metadata)",
+    "snippet": "boss:exposeInspector(\"property.attack_delay\", {kind=\"number\", writable=true, persist=true, min=0.1, max=5})",
+    "description": "Explicitly allow a scene-node field in the live inspector. Use property.name for stored properties, or position, rotation, scale, pivot, enabled, or visible. Fields are read-only unless writable=true; persist=true also permits Apply to Scene for authored scenes. Edits are validated against the current value and metadata."
+  },
+  {
     "signature": "node:getProperty(name)",
     "snippet": "local velocity = player:getProperty(\"velocity\")",
     "description": "Read a serialized property or nil; dynamic body velocity is updated after the physics step."
@@ -688,6 +693,21 @@
     "signature": "debug.drawVelocities(enabled)",
     "snippet": "debug.drawVelocities(true)",
     "description": "Velocity vectors when physics debug drawing is enabled."
+  },
+  {
+    "signature": "debug.drawOrigins(enabled)",
+    "snippet": "debug.drawOrigins(true)",
+    "description": "Development-only crosshairs for up to 256 visible scene node origins."
+  },
+  {
+    "signature": "debug.drawNodeNames(enabled)",
+    "snippet": "debug.drawNodeNames(true)",
+    "description": "Development-only labels for up to 256 visible scene nodes."
+  },
+  {
+    "signature": "debug.drawCamera(enabled)",
+    "snippet": "debug.drawCamera(true)",
+    "description": "Development-only camera bounds and center crosshair."
   },
   {
     "signature": "debug.showProfiler(enabled)",
