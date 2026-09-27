@@ -1,0 +1,6 @@
+[game]
+title = "My Game"
+width = 960
+height = 540
+vsync = true
+resizable = true
