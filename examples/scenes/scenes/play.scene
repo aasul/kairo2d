@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "name": "play",
+  "root": {
+    "id": 1,
+    "name": "play",
+    "kind": "Node",
+    "children": [
+      {
+        "id": 2,
+        "name": "World",
+        "kind": "Node2D",
+        "children": [
+          {
+            "id": 3,
+            "name": "Player",
+            "kind": "CharacterBody2D",
+            "script": "scripts/player.lua",
+            "transform": {"position": [100, 280]},
+            "children": [
+              {"id": 4, "name": "Collider", "kind": "Collider2D", "properties": {"shape": "rectangle", "width": 36, "height": 36}},
+              {"id": 5, "name": "Sprite", "kind": "Sprite", "transform": {"position": [-18, -18]}, "properties": {"texture": "assets/player.png", "width": 36, "height": 36}},
+              {"id": 6, "name": "Camera", "kind": "Camera2D", "properties": {"active": true, "zoom": 1.0}}
+            ]
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "name": "HUD",
+        "kind": "CanvasLayer",
+        "children": [
+          {"id": 8, "name": "Instructions", "kind": "Text", "transform": {"position": [24, 24]}, "properties": {"text": "WASD / arrows: move    Escape: pause", "scale": 2}},
+          {"id": 9, "name": "Visits", "kind": "Text", "transform": {"position": [24, 50]}, "properties": {"text": "Visits: 0", "scale": 2, "color": [0.6, 0.9, 0.85, 1]}}
+        ]
+      }
+    ]
+  }
+}

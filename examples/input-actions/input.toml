@@ -1,0 +1,16 @@
+[actions.activate]
+keyboard = ["space"]
+mouse = [1]
+gamepad = ["a"]
+
+[axes.move_x]
+negative = ["a", "left"]
+positive = ["d", "right"]
+gamepad_axis = "left_x"
+dead_zone = 0.18
+
+[axes.move_y]
+negative = ["w", "up"]
+positive = ["s", "down"]
+gamepad_axis = "left_y"
+dead_zone = 0.18

@@ -1,0 +1,7 @@
+[game]
+title = "Input Actions"
+width = 960
+height = 600
+
+[save]
+identity = "kairo-example-input-actions"

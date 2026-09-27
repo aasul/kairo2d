@@ -1,0 +1,10 @@
+[game]
+title = "Live Inspector"
+width = 960
+height = 600
+
+[save]
+identity = "kairo-example-live-inspector"
+
+[replay]
+enabled=true
