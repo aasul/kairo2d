@@ -25,7 +25,10 @@ pub struct EngineState {
     pub input: InputState,
     pub debug_draw: kairo_core::debug_draw::DebugDraw,
     pub particle_count: Rc<std::cell::Cell<usize>>,
+    pub particle_live_count: Rc<std::cell::Cell<usize>>,
     pub inspection_session: u64,
+    pub runtime_offset: usize,
+    pub runtime_selected: Option<kairo_core::inspector::RuntimeNodeKey>,
     pub actions: kairo_core::actions::Actions,
     pub frame: Frame,
     pub width: u32,
@@ -72,7 +75,10 @@ impl EngineState {
             actions,
             debug_draw: Default::default(),
             particle_count: Rc::new(std::cell::Cell::new(0)),
+            particle_live_count: Rc::new(std::cell::Cell::new(0)),
             inspection_session: kairo_core::inspector::next_session()?,
+            runtime_offset: 0,
+            runtime_selected: None,
             frame: Frame::default(),
             width: if config.micro.enabled {
                 config.micro.width
@@ -91,7 +97,10 @@ impl EngineState {
             fps: 0.0,
             frame_number: 0,
             debug_ui: Default::default(),
-            profile: Default::default(),
+            profile: kairo_core::profiler::ProfileSample {
+                profiling_enabled: config.development.profiler,
+                ..Default::default()
+            },
             show_profiler: config.development.profiler,
             development_tools: config.development.tools,
             replay: crate::replay::ReplayState::new(&config.replay)?,

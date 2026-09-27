@@ -16,12 +16,14 @@
     "gamepad",
     "save",
     "profiler",
+    "debug",
     "ui",
     "debugui",
     "replay",
     "random"
   ],
   "workspace.checkThirdParty": false,
+  "workspace.library": ["docs/luals"],
   "workspace.ignoreDir": [
     "target",
     ".git",

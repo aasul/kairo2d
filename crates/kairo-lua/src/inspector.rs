@@ -1,7 +1,8 @@
 use crate::state::{lua_error, SharedState};
 use anyhow::Result;
 use kairo_core::inspector::{
-    InspectMetadata, InspectNode, InspectSnapshot, InspectUpdate, SceneStatus,
+    InspectMetadata, InspectNode, InspectSnapshot, InspectUpdate, RuntimeNodeKey, RuntimeTreePage,
+    SceneStatus,
 };
 use mlua::{Lua, LuaSerdeExt, Table, Value};
 
@@ -37,17 +38,29 @@ pub(crate) fn register(lua: &Lua, state: &SharedState) -> mlua::Result<()> {
         .call(backend)?;
     lua.globals().set("inspector", public)
 }
-pub(crate) fn snapshot(lua: &Lua, session: u64) -> Result<InspectSnapshot> {
+pub(crate) fn snapshot(
+    lua: &Lua,
+    session: u64,
+    offset: usize,
+    selected: Option<RuntimeNodeKey>,
+) -> Result<InspectSnapshot> {
     let inspector: Table = lua.globals().get("inspector")?;
     let value: Value = inspector.get::<mlua::Function>("_snapshot")?.call(())?;
     let nodes = lua.from_value(value)?;
     let scene: Table = lua.globals().get("scene")?;
     let value: Value = scene.get::<mlua::Function>("info")?.call(())?;
     let scenes: SceneStatus = lua.from_value(value)?;
+    let value: Value = scene.get::<mlua::Function>("_runtimeSnapshot")?.call((
+        offset,
+        selected.map(|key| key.graph),
+        selected.map(|key| key.id),
+    ))?;
+    let runtime: Option<RuntimeTreePage> = lua.from_value(value)?;
     let result = InspectSnapshot {
         session,
         nodes,
         scenes,
+        runtime,
         error: None,
     };
     result.validate()?;

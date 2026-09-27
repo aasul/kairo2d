@@ -3,6 +3,7 @@
 use crate::state::EngineState;
 use anyhow::{ensure, Context, Result};
 use glam::{Mat2, Mat3, Vec2};
+use kairo_core::debug_draw::DebugSegment;
 use kairo_core::scene_graph::{NodeFile, NodeId, NodeKind, SceneGraph};
 use kairo_core::{Camera, Color, DrawCommand, Quad, Transform};
 use serde_json::Value;
@@ -200,6 +201,7 @@ pub(crate) fn draw(graph: &mut SceneGraph, state: &mut EngineState) -> Result<()
         state.camera = camera;
     }
     let camera = state.camera;
+    let mut debug_nodes = 0;
     let mut pending: Vec<(NodeId, bool)> = vec![(graph.root(), false)];
     while let Some((id, inherited_screen)) = pending.pop() {
         let node = graph.node(id)?;
@@ -218,6 +220,60 @@ pub(crate) fn draw(graph: &mut SceneGraph, state: &mut EngineState) -> Result<()
                 graph.path(id).unwrap_or_default()
             )
         })?;
+        if state.development_tools
+            && debug_nodes < 256
+            && (state.debug_draw.origins || state.debug_draw.names)
+        {
+            let origin = matrix.transform_point2(Vec2::ZERO);
+            if state.debug_draw.origins {
+                let extent = 5.0 / node_camera.zoom.max(0.001);
+                for axis in [Vec2::X, Vec2::Y] {
+                    DebugSegment {
+                        from: origin - axis * extent,
+                        to: origin + axis * extent,
+                        color: Color([0.2, 1.0, 0.65, 0.9]),
+                    }
+                    .draw(&mut state.frame, node_camera)?;
+                }
+            }
+            if state.debug_draw.names {
+                state.frame.push(DrawCommand::Text {
+                    text: data.name.clone(),
+                    position: origin + Vec2::new(7.0, -7.0),
+                    scale: 1.0,
+                    camera: node_camera,
+                    color: Color([0.8, 1.0, 0.8, 0.95]),
+                })?;
+            }
+            debug_nodes += 1;
+        }
+    }
+    if state.development_tools && state.debug_draw.camera {
+        let corners = [
+            Vec2::ZERO,
+            Vec2::new(size.x, 0.0),
+            size,
+            Vec2::new(0.0, size.y),
+        ]
+        .map(|point| camera.screen_to_world(point));
+        for index in 0..4 {
+            DebugSegment {
+                from: corners[index],
+                to: corners[(index + 1) % 4],
+                color: Color([0.8, 0.4, 1.0, 0.9]),
+            }
+            .draw(&mut state.frame, camera)?;
+        }
+        let center = camera.screen_to_world(size * 0.5);
+        let extent = 8.0 / camera.zoom.max(0.001);
+        for axis in [Vec2::X, Vec2::Y] {
+            DebugSegment {
+                from: center - axis * extent,
+                to: center + axis * extent,
+                color: Color([1.0, 0.35, 0.8, 0.9]),
+            }
+            .draw(&mut state.frame, camera)?;
+        }
     }
     Ok(())
 }

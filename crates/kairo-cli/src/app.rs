@@ -102,6 +102,47 @@ struct App {
 }
 
 impl App {
+    fn resources_ready_for_reload(&self, changed: &[std::path::PathBuf]) -> bool {
+        if changed.is_empty() {
+            return true;
+        }
+        let result = kairo_project::ProjectFiles::open(self.fs.root())
+            .and_then(|files| kairo_project::dependencies::DependencyGraph::scan(&files));
+        let graph = match result {
+            Ok(graph) => graph,
+            Err(error) => {
+                log::warn!("Resource analysis failed; keeping the current runtime: {error:#}");
+                return false;
+            }
+        };
+        for path in changed {
+            let marker = format!("{}:", path.display());
+            if let Some(problem) = graph
+                .problems()
+                .iter()
+                .find(|problem| problem.starts_with(&marker))
+            {
+                log::warn!("Changed resource is invalid; keeping the current runtime: {problem}");
+                return false;
+            }
+            if let Some(reference) = graph
+                .broken()
+                .into_iter()
+                .find(|reference| reference.target == *path || reference.owner == *path)
+            {
+                log::warn!("Changed resource has a broken dependency; keeping the current runtime: {} {} → {}",
+                    reference.owner.display(), reference.field, reference.target.display());
+                return false;
+            }
+            log::info!(
+                "Changed resource {} has {} known dependent(s); preparing session reload",
+                path.display(),
+                graph.used_by(path).len()
+            );
+        }
+        true
+    }
+
     fn fail(&mut self, event_loop: &ActiveEventLoop, error: anyhow::Error) {
         self.fatal = Some(error);
         event_loop.exit();
@@ -377,6 +418,7 @@ impl App {
             renderer.render(&frame, &self.error_assets)?;
         } else if let Some(session) = &self.session {
             let mut state = session.state().borrow_mut();
+            let render_start = state.profile.profiling_enabled.then(Instant::now);
             let stats = if let Some(warning) = &self.reload_warning {
                 let mut frame = state.frame.clone();
                 frame.commands.push(DrawCommand::Viewport(None));
@@ -412,6 +454,9 @@ impl App {
             };
             state.profile.batches = stats.draw_calls;
             state.profile.vertices = stats.vertices;
+            if let Some(start) = render_start {
+                state.profile.render_ms = start.elapsed().as_secs_f64() * 1000.0;
+            }
         }
         if (self.shutdown.is_some() || self.link.is_some())
             && self.last_telemetry.elapsed() >= Duration::from_millis(200)
@@ -666,8 +711,10 @@ impl ApplicationHandler for App {
         }
         if let Some(changes) = self.watcher.as_mut().and_then(ScriptWatcher::ready) {
             if changes.scripts {
-                log::info!("Lua files changed; preparing replacement session");
-                self.reload(event_loop);
+                if self.resources_ready_for_reload(&changes.resources) {
+                    log::info!("Project files changed; preparing replacement session");
+                    self.reload(event_loop);
+                }
             } else if let Some(session) = &self.session {
                 let mut success = false;
                 let mut failure = None;

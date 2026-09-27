@@ -1,10 +1,7 @@
 [game]
-title = "Live Inspector"
+title = "Live Inspector Demo"
 width = 960
 height = 600
 
 [save]
 identity = "kairo-example-live-inspector"
-
-[replay]
-enabled=true

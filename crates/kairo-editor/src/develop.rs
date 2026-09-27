@@ -16,14 +16,16 @@ pub(crate) enum ToolTab {
     Particles,
     Mixer,
     Search,
+    Resources,
 }
 impl ToolTab {
-    pub const ALL: [Self; 5] = [
+    pub const ALL: [Self; 6] = [
         Self::Inspector,
         Self::Input,
         Self::Particles,
         Self::Mixer,
         Self::Search,
+        Self::Resources,
     ];
     pub fn name(self) -> &'static str {
         match self {
@@ -32,6 +34,7 @@ impl ToolTab {
             Self::Particles => "Particles",
             Self::Mixer => "Audio Mixer",
             Self::Search => "Project Search",
+            Self::Resources => "Resources",
         }
     }
 }
@@ -47,6 +50,9 @@ pub(crate) struct DevelopTools {
     case_sensitive: bool,
     search: Option<Receiver<Result<kairo_project::search::SearchReport>>>,
     results: kairo_project::search::SearchReport,
+    resource_scan: Option<Receiver<Result<kairo_project::dependencies::DependencyGraph>>>,
+    resource_graph: Option<kairo_project::dependencies::DependencyGraph>,
+    resource_query: String,
     message: String,
 }
 impl DevelopTools {
@@ -90,7 +96,7 @@ impl DevelopTools {
                     let mut command=None;
                     if !sample.tools_enabled {ui.label("Runtime tools are disabled by this profile. Restart with Development or Debug to edit live state.");}
                     ui.add_enabled_ui(sample.tools_enabled,|ui| {
-                        command=if self.tab==ToolTab::Inspector{self.inspector.ui(ui,self.target,sample)}else{mixer_ui(ui,sample)};
+                        command=if self.tab==ToolTab::Inspector{self.inspector.ui(ui,self.target,sample,workspace)}else{mixer_ui(ui,sample)};
                     });
                     if let Some(command)=command {action=Some(Action::Control {peer:self.target,command:Box::new(command)});}
                     if let Some(peer)=peers.iter().find(|p|p.id==self.target){
@@ -110,6 +116,7 @@ impl DevelopTools {
                         self.particles.as_mut().map_or(Ok(()),|tool|tool.ui(ui,workspace))
                     }
                     ToolTab::Search=>{self.search_ui(ui,workspace,&mut action);Ok(())}
+                    ToolTab::Resources=>{self.resources_ui(ui,workspace);Ok(())}
                     _=>Ok(()),
                 };
                 if let Err(error)=result{self.message=format!("{error:#}");}
@@ -187,6 +194,151 @@ impl DevelopTools {
                 .clicked()
             {
                 *action = Some(Action::OpenLocation(hit.path.clone(), hit.line));
+            }
+        }
+    }
+
+    fn resources_ui(&mut self, ui: &mut egui::Ui, workspace: &mut Workspace) {
+        if let Some(receiver) = &self.resource_scan {
+            match receiver.try_recv() {
+                Ok(Ok(graph)) => {
+                    self.message = format!(
+                        "{} files analyzed, {} known references",
+                        graph.files().len(),
+                        graph.references().len()
+                    );
+                    self.resource_graph = Some(graph);
+                    self.resource_scan = None;
+                }
+                Ok(Err(error)) => {
+                    self.message = format!("Resource analysis failed: {error:#}");
+                    self.resource_scan = None;
+                }
+                Err(mpsc::TryRecvError::Disconnected) => self.resource_scan = None,
+                Err(mpsc::TryRecvError::Empty) => {}
+            }
+        }
+        ui.horizontal(|ui| {
+            if ui
+                .add_enabled(
+                    self.resource_scan.is_none(),
+                    egui::Button::new("Analyze project"),
+                )
+                .clicked()
+            {
+                let files = workspace.files.clone();
+                let (sender, receiver) = mpsc::sync_channel(1);
+                self.resource_scan = Some(receiver);
+                std::thread::spawn(move || {
+                    let _ = sender.send(kairo_project::dependencies::DependencyGraph::scan(&files));
+                });
+            }
+            ui.add(
+                egui::TextEdit::singleline(&mut self.resource_query)
+                    .hint_text("Resource path")
+                    .char_limit(256),
+            );
+        });
+        if self.resource_scan.is_some() {
+            ui.spinner();
+            ui.ctx()
+                .request_repaint_after(std::time::Duration::from_millis(50));
+        }
+        let Some(graph) = &self.resource_graph else {
+            ui.small("Analyze saved project resources to inspect dependencies, broken references and potentially unused files.");
+            return;
+        };
+        let mut open = None;
+        let query = std::path::Path::new(self.resource_query.trim());
+        if !self.resource_query.trim().is_empty() {
+            ui.strong("Where used");
+            for reference in graph.used_by(query).into_iter().take(100) {
+                if ui
+                    .link(format!(
+                        "{}  {}",
+                        reference.owner.display(),
+                        reference.field
+                    ))
+                    .clicked()
+                {
+                    open = Some(reference.owner.clone());
+                }
+            }
+            ui.strong("Depends on");
+            for reference in graph.dependencies_of(query).into_iter().take(100) {
+                ui.label(format!(
+                    "{}  ({})",
+                    reference.target.display(),
+                    reference.field
+                ));
+            }
+        }
+        ui.separator();
+        ui.strong(format!("Broken references ({})", graph.broken().len()));
+        for reference in graph.broken().into_iter().take(100) {
+            if ui
+                .link(format!(
+                    "{} → {}  {}",
+                    reference.owner.display(),
+                    reference.target.display(),
+                    reference.field
+                ))
+                .clicked()
+            {
+                open = Some(reference.owner.clone());
+            }
+        }
+        for problem in graph.problems().iter().take(20) {
+            ui.colored_label(egui::Color32::YELLOW, problem);
+        }
+        ui.separator();
+        ui.strong("Potentially unused resources");
+        let mut shown = 0;
+        for path in graph.files() {
+            if path == std::path::Path::new("main.lua")
+                || matches!(
+                    graph.usage(path),
+                    kairo_project::dependencies::Usage::Referenced
+                )
+            {
+                continue;
+            }
+            if !matches!(
+                path.extension().and_then(|value| value.to_str()),
+                Some(
+                    "png"
+                        | "jpg"
+                        | "jpeg"
+                        | "wav"
+                        | "ogg"
+                        | "scene"
+                        | "prefab"
+                        | "wgsl"
+                        | "anim"
+                        | "tmj"
+                        | "tsj"
+                        | "ttf"
+                        | "otf"
+                )
+            ) {
+                continue;
+            }
+            let label = if graph.usage(path) == kairo_project::dependencies::Usage::DynamicUncertain
+            {
+                "dynamic / uncertain"
+            } else {
+                "apparently unreferenced"
+            };
+            ui.label(format!("{}  ({label})", path.display()));
+            shown += 1;
+            if shown >= 100 {
+                break;
+            }
+        }
+        ui.small("Static analysis of saved structured resources. Lua may construct paths dynamically; no files are deleted or excluded from exports.");
+        if let Some(path) = open {
+            if let Err(error) = workspace.open_file(path) {
+                self.message = format!("{error:#}");
             }
         }
     }

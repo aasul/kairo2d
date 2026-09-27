@@ -393,7 +393,7 @@ profiler.show(true)
 
 ## `profiler.stats()`
 
-Read CPU phase timings and most recent render counters.
+Read frame interval, CPU timings, runtime counters, and bounded per-callback samples. Callback timing is enabled by the Debug build profile.
 
 ```lua
 local sample = profiler.stats()
@@ -761,6 +761,14 @@ Set a serialized node property; supported scene node types read native render, c
 sprite:setProperty("texture", "assets/player.png")
 ```
 
+## `node:exposeInspector(field, metadata)`
+
+Explicitly allow a scene-node field in the live inspector. Use property.name for stored properties, or position, rotation, scale, pivot, enabled, or visible. Fields are read-only unless writable=true; persist=true also permits Apply to Scene for authored scenes. Edits are validated against the current value and metadata.
+
+```lua
+boss:exposeInspector("property.attack_delay", {kind="number", writable=true, persist=true, min=0.1, max=5})
+```
+
 ## `node:getProperty(name)`
 
 Read a serialized property or nil; dynamic body velocity is updated after the physics step.
@@ -1114,6 +1122,30 @@ Velocity vectors when physics debug drawing is enabled.
 
 ```lua
 debug.drawVelocities(true)
+```
+
+## `debug.drawOrigins(enabled)`
+
+Development-only crosshairs for up to 256 visible scene node origins.
+
+```lua
+debug.drawOrigins(true)
+```
+
+## `debug.drawNodeNames(enabled)`
+
+Development-only labels for up to 256 visible scene nodes.
+
+```lua
+debug.drawNodeNames(true)
+```
+
+## `debug.drawCamera(enabled)`
+
+Development-only camera bounds and center crosshair.
+
+```lua
+debug.drawCamera(true)
 ```
 
 ## `debug.showProfiler(enabled)`

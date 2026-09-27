@@ -205,6 +205,9 @@ impl SceneGraph {
     pub fn name(&self) -> &str {
         &self.name
     }
+    pub fn graph_id(&self) -> u64 {
+        self.nonce
+    }
     pub fn root(&self) -> NodeId {
         self.root
     }
@@ -213,6 +216,33 @@ impl SceneGraph {
     }
     pub fn is_empty(&self) -> bool {
         false
+    }
+
+    /// Traverse only as far as needed for a bounded runtime-inspector page.
+    pub fn preorder_page(&self, offset: usize, limit: usize) -> Result<Vec<(NodeId, usize)>> {
+        if limit == 0 {
+            return Ok(Vec::new());
+        }
+        let mut result = Vec::with_capacity(limit.min(64));
+        let mut pending = vec![(self.root, 0)];
+        let mut index = 0usize;
+        while let Some((id, depth)) = pending.pop() {
+            if index >= offset {
+                result.push((id, depth));
+                if result.len() >= limit {
+                    break;
+                }
+            }
+            let node = self.node(id)?;
+            pending.extend(
+                node.children()
+                    .iter()
+                    .rev()
+                    .map(|child| (*child, depth + 1)),
+            );
+            index += 1;
+        }
+        Ok(result)
     }
 
     fn slot(&self, id: NodeId) -> Result<&Slot> {
@@ -388,6 +418,38 @@ impl SceneGraph {
             .data
             .properties
             .insert(name.to_owned(), value);
+        Ok(())
+    }
+
+    pub fn expose_inspector_field(
+        &mut self,
+        id: NodeId,
+        path: &str,
+        metadata: crate::inspector::InspectMetadata,
+    ) -> Result<()> {
+        let data = self.node(id)?.data();
+        let field = crate::inspector::InspectNode {
+            path: path.to_owned(),
+            value: crate::inspector::runtime_field_value(data, path)
+                .context("runtime field does not exist")?,
+            metadata: metadata.clone(),
+        };
+        field.validate()?;
+        let metadata = serde_json::to_value(metadata)?;
+        let entry = self
+            .node_mut(id)?
+            .data
+            .metadata
+            .entry("runtime_inspector")
+            .or_insert_with(|| Value::Object(Map::new()));
+        let fields = entry
+            .as_object_mut()
+            .context("runtime inspector metadata must be an object")?;
+        ensure!(
+            fields.contains_key(path) || fields.len() < 16,
+            "too many exposed runtime fields"
+        );
+        fields.insert(path.to_owned(), metadata);
         Ok(())
     }
 

@@ -443,6 +443,10 @@ impl PhysicsWorld {
     pub fn body_count(&self) -> usize {
         self.handles.len()
     }
+
+    pub fn collider_count(&self) -> usize {
+        self.colliders.len()
+    }
 }
 
 #[cfg(test)]
