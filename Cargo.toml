@@ -1,0 +1,75 @@
+[workspace]
+members = [
+    "crates/kairo-core",
+    "crates/kairo-assets",
+    "crates/kairo-render",
+    "crates/kairo-audio",
+    "crates/kairo-lua",
+    "crates/kairo-cli",
+    "crates/kairo-project",
+    "crates/kairo-editor",
+    "crates/kairo-replay",
+    "crates/kairo-link",
+]
+default-members = ["crates/kairo-cli"]
+resolver = "2"
+
+[workspace.package]
+version = "3.4.0"
+edition = "2021"
+license = "MIT"
+authors = ["Kairo2D contributors"]
+
+[workspace.dependencies]
+getrandom = "0.3"
+kairo-link = { path = "crates/kairo-link", version = "3.4.0" }
+kairo-replay = { path = "crates/kairo-replay", version = "3.4.0" }
+egui = "=0.28.1"
+egui-wgpu = { version = "=0.28.1", default-features = false }
+fontdue = "=0.9.3"
+gilrs = "=0.11.0"
+directories = "=5.0.1"
+
+kairo-project = { path = "crates/kairo-project", version = "3.4.0" }
+eframe = { version = "=0.28.1", default-features = false, features = ["default_fonts", "glow", "persistence", "x11", "wayland"] }
+rfd = { version = "=0.14.1", default-features = false, features = ["xdg-portal", "async-std"] }
+toml_edit = "0.22"
+serde_json = "1.0"
+kairo-core = { path = "crates/kairo-core", version = "3.4.0" }
+kairo-assets = { path = "crates/kairo-assets", version = "3.4.0" }
+kairo-render = { path = "crates/kairo-render", version = "3.4.0" }
+kairo-audio = { path = "crates/kairo-audio", version = "3.4.0" }
+kairo-lua = { path = "crates/kairo-lua", version = "3.4.0" }
+anyhow = "1.0"
+bytemuck = { version = "1.21", features = ["derive"] }
+clap = { version = "4.5", features = ["derive"] }
+env_logger = "0.11"
+font8x8 = "0.3"
+glam = "=0.29.3"
+image = { version = "=0.24.9", default-features = false, features = ["png", "jpeg"] }
+kira = { version = "=0.9.6", default-features = false, features = ["cpal", "wav", "ogg"] }
+log = "0.4"
+mlua = { version = "=0.10.3", features = ["lua54", "vendored", "error-send", "serialize"] }
+notify = "=7.0.0"
+pollster = "0.3"
+rapier2d = "=0.22.0"
+serde = { version = "1.0", features = ["derive"] }
+tempfile = "3.15"
+thiserror = "2.0"
+toml = "0.8"
+wgpu = "=0.20.1"
+winit = "=0.30.9"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[profile.dev.package.kira]
+opt-level = 2
+
+[profile.dev.package.symphonia-core]
+opt-level = 2
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "debuginfo"

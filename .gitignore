@@ -1,0 +1,22 @@
+/target/
+/dist/
+*.zip
+*.zip.sha256
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+.env
+.env.*
+# Commit Cargo.lock once Cargo has actually resolved the workspace.
+# Local live-development credentials and generated release notices.
+*.kairo-token
+*.link-token
+session-token.txt
+dependency-licenses.json
+*.token

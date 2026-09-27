@@ -1,0 +1,30 @@
+{
+  "runtime.version": "Lua 5.4",
+  "diagnostics.globals": [
+    "game",
+    "graphics",
+    "audio",
+    "keyboard",
+    "mouse",
+    "window",
+    "timer",
+    "filesystem",
+    "assets",
+    "physics",
+    "animation",
+    "tilemap",
+    "gamepad",
+    "save",
+    "profiler",
+    "ui",
+    "debugui",
+    "replay",
+    "random"
+  ],
+  "workspace.checkThirdParty": false,
+  "workspace.ignoreDir": [
+    "target",
+    ".git",
+    "dist"
+  ]
+}

@@ -1,0 +1,3 @@
+# Keep the MSVC C runtime in the executable; OS graphics/audio libraries remain external.
+[target.'cfg(all(windows, target_env = "msvc"))']
+rustflags = ["-C", "target-feature=+crt-static"]
