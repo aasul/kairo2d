@@ -1,4 +1,56 @@
-# Validation - Kairo2D 3.4.0
+# Validation - Kairo2D 3.5.0 development
+
+## 3.5.0 version and CI follow-up — 2026-09-26
+
+The merged `main` contains the scene changes and Relay Dusk. This branch updates
+the development version, package names, host-native stable Rust toolchain selection,
+and the desktop artifact tag filter. The published 3.4.0 source release remains
+historical; no 3.5.0 release or cross-platform acceptance is declared.
+
+On this Windows host, `cargo fmt --all -- --check`,
+`cargo check --workspace --all-targets --all-features --locked`,
+`cargo clippy --workspace --all-targets --all-features -- -D warnings`,
+`cargo test --workspace --all-features`, and `cargo build --workspace` passed
+with the installed Windows GNU stable toolchain. `scripts/source_audit.py` passed with
+176 API entries, `scripts/generate_api_docs.py --check` passed, all 24 example
+smoke tests passed, and `scripts/package_smoke.py` passed using the bundled
+Python interpreter. Native GUI/GPU quality, physical audio and controller
+devices, and Linux/macOS behavior still require hands-on acceptance.
+
+The prior `main` GitHub Actions run failed at the workspace check on all three
+platforms. The repository had pinned a Windows GNU target in `rust-toolchain.toml`;
+this branch selects each host's stable toolchain. The exact CI failure text was
+unavailable, so this change must be verified by a new CI run before merge.
+
+## Relay Dusk game follow-up — 2026-09-26
+
+`examples/relay-dusk` is a new playable project using the current public Lua
+runtime. It includes original generated sprites and sounds, a three-relay
+survival mission, upgrades, enemy waves, a boss, extraction, scoring and saves.
+The engine APIs are unchanged.
+
+| Command or check | Result on this Windows host |
+| --- | --- |
+| `cargo fmt --all -- --check` | Passed. |
+| `cargo check --workspace --all-targets --all-features` | Passed. |
+| `cargo clippy --workspace --all-targets --all-features -- -D warnings` | Passed. |
+| `cargo test --workspace --all-features` | Passed, including `relay_dusk_starts_fights_and_pauses_headlessly`. |
+| `cargo build --workspace` | Passed. |
+| `target/debug/kairo.exe check examples/relay-dusk` | Passed after the final Lua change. |
+| `scripts/source_audit.py` | Passed with bundled Python: 176 API entries, 22 PNGs and 15 WAVs. |
+| `scripts/generate_api_docs.py --check` | Passed. |
+| `scripts/smoke.py` | Passed for all 24 examples after the final Lua change. |
+| `scripts/package_smoke.py` | Passed for CLI creation, export and relocated headless execution. |
+| `target/debug/kairo.exe build examples/relay-dusk --output dist/RelayDusk` | Passed; created ignored `dist/RelayDusk/RelayDusk.exe` with its project data and release package marker. A no-argument graphical launch opened a responding `Relay Dusk` window. |
+| `git diff --check` | Passed. |
+| Visible runtime and editor launch | `kairo.exe run examples/relay-dusk --no-watch` and `kairo-editor.exe examples/relay-dusk` opened responding windows. The initial runtime launch exposed an audio playback restriction in `game.load`; music was moved into the first menu update. The development game window was then replaced with the responding standalone package window. |
+
+The integration test starts the mission, moves and fires for 180 frames, checks
+that drawing commands were produced, and pauses. It does not complete all three
+relays or the boss fight. Visible window startup does not establish visual quality
+or physical controller and audio-output behavior; those need hands-on acceptance.
+The host emitted non-fatal Vulkan validation-layer and D3D12 debug-interface
+warnings during the visible launch.
 
 ## Local Windows follow-up — 2026-09-26
 
@@ -6,6 +58,10 @@ This section describes the current checkout after adding the validated node hier
 JSON scene loading, attached node scripts, hierarchical JSON prefabs,
 node/global signals, Lua bindings, visual `.scene` resource editing, `.prefab`
 text editing, an updated Scene Workshop starter, and a Windows Link socket fix.
+The follow-up also adds native scene drawing, Rapier bodies and contact dispatch,
+AudioSource playback management, Control pointer interaction, typed editor
+properties and marker dragging. The contact regression test covers both the
+`collision` signal and attached `onCollision(self, other)` callback.
 The 2026-09-18 source-only report below is historical; its statements that Cargo and
 native tests were unavailable do not describe this follow-up. No release is claimed.
 
@@ -14,13 +70,14 @@ native tests were unavailable do not describe this follow-up. No release is clai
 | `cargo fmt --all -- --check` | Passed. |
 | `cargo check --workspace --all-targets --all-features` | Passed. |
 | `cargo clippy --workspace --all-targets --all-features -- -D warnings` | Passed. |
-| `cargo test --workspace --all-features` | Passed, including new graph, Lua scene, script, signal, prefab, Scene Workshop and Link tests. |
+| `cargo test -p kairo-lua native_body_contacts_emit_validated_scene_node_signals --all-features` | Passed after strengthening assertions for the signal and attached script callback. |
+| `cargo test --workspace --all-features` | Passed after the latest contact, Control and test changes, including graph, Lua scene, native drawing/physics/audio, editor, Scene Workshop and Link tests. |
 | `cargo build --workspace` | Passed; editor and runtime binaries built. |
-| `scripts/source_audit.py` | Passed with bundled Python; 172 API entries synchronized. |
+| `scripts/source_audit.py` | Passed with bundled Python; 176 API entries synchronized. |
 | `scripts/generate_api_docs.py --check` | Passed with bundled Python. |
 | `scripts/package_smoke.py` | Passed; real CLI project creation, export and relocated headless game execution. |
-| `scripts/smoke.py` | Passed for all 23 examples after granting access to the normal per-user save directory. Initial sandboxed attempt stopped at `save-data` with OS error 5. |
-| Bounded native editor startup with `examples/scenes` | The editor process remained alive for five seconds, then was stopped. This does not establish visual GUI acceptance. |
+| `scripts/smoke.py` | Passed for all 23 examples using the built runtime with headless, no-audio execution. |
+| `scripts/lua_sanity.py` | Could not run the optional Lua-only check: this host lacks a native Lua 5.4 shared library. The Rust Lua runtime tests and example smoke tests did run. |
 | `git diff --check` | Passed. |
 
 `target/debug/kairo.exe check examples/scenes` and `target/debug/kairo.exe run
@@ -40,14 +97,17 @@ across Undo, which reconstructs the graph and invalidates old handles. The test
 was corrected to reacquire nodes by path; its focused rerun and the final full
 workspace run pass.
 
-The editor GUI was not opened for visual acceptance. GPU rendering, audio output,
-physical controllers, native camera/physics integration with scene nodes, graphical
-export launch, and cross-platform CI were not verified on this host. The graph node
-types currently store authored data; they do not automatically instantiate native
-rendering, physics, audio, UI, or camera objects. The scene resource tab has a tree,
-node markers, basic inspector, sibling ordering, and reparenting by path, but has
-not received GUI visual acceptance or the planned drag/gizmo workflow. Its history
-is local to the scene tab.
+The editor GUI was not opened for visual acceptance during this continuation. A
+previous bounded editor startup remained alive for five seconds, which is only a
+startup smoke check. GPU drawing, actual audio-device output, physical controllers,
+graphical export launch and cross-platform CI were not verified on this host.
+Native camera, sprite, Control, physics and AudioSource integration is exercised by
+headless tests, not by visual or device acceptance. The scene resource tab has a
+tree, typed inspector, node-marker dragging, bounds and camera frame preview; its
+Undo/Redo history is local to the scene tab. Area2D sensors and trigger enter/exit,
+fixedUpdate scheduling, contact normals, contacts with manually created physics
+bodies, authored scene animation/particles/tilemaps, runtime UI focus/layout/text
+input, render targets/shaders, and the complete public-API demo remain incomplete.
 
 ## Result and provenance
 

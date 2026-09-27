@@ -1,11 +1,11 @@
-# Kairo2D 3.4.0
+# Kairo2D 3.5.0
 
 I'm building Kairo2D as a small 2D game engine written in Rust, with Lua 5.4 for game
 code and Kairo as its desktop editor. It includes a scene system, input actions, an
 inspector, particles, animation state machines, audio buses, tilemaps, and a few
 tools for working with a running game.
 
-**Project status:** Kairo2D is experimental. This 3.4.0 development checkout builds
+**Project status:** Kairo2D is experimental. This 3.5.0 development checkout builds
 and passes native tests on the local Windows host, but has not completed visual or
 cross-platform release acceptance. APIs may change. Contributions and careful bug reports are
 welcome. See [VALIDATION.md](VALIDATION.md) for what was checked and what still needs
@@ -69,8 +69,8 @@ sound assets are MIT licensed; no fonts are bundled.
 ## Checks and release status
 
 The repository includes Rust tests, Lua checks, static source checks, and CI for
-Windows, Linux, and macOS. The tests in the source tree have not all been run against
-a native build for this 3.4.0 snapshot. A successful static or Lua check does not
+Windows, Linux, and macOS. Local Windows native checks are recorded in
+[VALIDATION.md](VALIDATION.md). A successful static or Lua check does not
 confirm rendering, audio, controller, editor, or network behavior. See
 [VALIDATION.md](VALIDATION.md) for the recorded results and
 [release acceptance](docs/release-acceptance.md) for the remaining checks.

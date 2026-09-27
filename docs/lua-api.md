@@ -1,4 +1,4 @@
-# Lua API - Kairo2D 3.4.0
+# Lua API - Kairo2D 3.5.0
 
 This is the implemented source API, not a claim of completed native validation.
 See `VALIDATION.md` at the repository root. All listed functions have implementations. Unsupported future features are not

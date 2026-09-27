@@ -507,9 +507,23 @@ fn scene_bodies_sync_rapier_motion_and_release_on_switch_or_destroy() {
 
 #[test]
 fn native_body_contacts_emit_validated_scene_node_signals() {
-    let (_root, session) = project(
+    let root = tempfile::tempdir().unwrap();
+    std::fs::create_dir(root.path().join("scripts")).unwrap();
+    std::fs::write(
+        root.path().join("scripts/contact.lua"),
+        r#"
+        return {onCollision = function(self, other)
+            assert(other:isAlive() and other:hasTag('wall'))
+            script_contacts = script_contacts + 1
+        end}
+        "#,
+    )
+    .unwrap();
+    std::fs::write(
+        root.path().join("main.lua"),
         r#"
         contacts = 0
+        script_contacts = 0
         local level = scene.new('Contacts')
         local wall = level:createNode('StaticBody2D','Wall')
         wall.position = {x=100,y=100}
@@ -526,11 +540,27 @@ fn native_body_contacts_emit_validated_scene_node_signals() {
             assert(other:isAlive() and other:hasTag('wall'))
             contacts = contacts + 1
         end)
+        level:attachScript(ball, 'scripts/contact.lua')
         scene.switch(level)
     "#,
-    );
+    )
+    .unwrap();
+    let session = GameSession::load(
+        ProjectFs::new(root.path()).unwrap(),
+        &Config::default(),
+        false,
+    )
+    .unwrap();
     session.tick(1.0 / 60.0).unwrap();
-    assert!(session.lua().globals().get::<u32>("contacts").unwrap() > 0);
+    assert_eq!(session.lua().globals().get::<u32>("contacts").unwrap(), 1);
+    assert_eq!(
+        session
+            .lua()
+            .globals()
+            .get::<u32>("script_contacts")
+            .unwrap(),
+        1
+    );
 }
 
 #[test]
@@ -1057,6 +1087,45 @@ fn actual_animation_tilemap_micro_ui_replay_and_link_examples_tick_headlessly() 
             "{name}"
         );
     }
+}
+
+#[test]
+fn relay_dusk_starts_fights_and_pauses_headlessly() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples/relay-dusk");
+    let fs = ProjectFs::new(root).unwrap();
+    let config = Config::load(&fs).unwrap();
+    let session = GameSession::load(fs, &config, false).unwrap();
+    session.state().borrow_mut().input.set_key("enter", true);
+    session.tick(1.0 / 60.0).unwrap();
+    session.state().borrow_mut().input.set_key("enter", false);
+    session
+        .lua()
+        .load("assert(scene.current() == 'mission')")
+        .exec()
+        .unwrap();
+    {
+        let mut state = session.state().borrow_mut();
+        state.input.set_key("d", true);
+        state.input.set_key("space", true);
+        state.input.mouse_x = 1050.0;
+        state.input.mouse_y = 355.0;
+    }
+    for _ in 0..180 {
+        session.tick(1.0 / 60.0).unwrap();
+    }
+    assert!(!session.state().borrow().frame.commands.is_empty());
+    {
+        let mut state = session.state().borrow_mut();
+        state.input.set_key("space", false);
+        state.input.set_key("d", false);
+        state.input.set_key("escape", true);
+    }
+    session.tick(1.0 / 60.0).unwrap();
+    session
+        .lua()
+        .load("assert(scene.current() == 'pause')")
+        .exec()
+        .unwrap();
 }
 
 #[test]
