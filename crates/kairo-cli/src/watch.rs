@@ -13,12 +13,14 @@ use std::time::{Duration, Instant};
 pub struct Changes {
     pub scripts: bool,
     pub textures: Vec<PathBuf>,
+    pub resources: Vec<PathBuf>,
 }
 
 #[derive(Default)]
 struct Pending {
     scripts: bool,
     textures: BTreeSet<PathBuf>,
+    resources: BTreeSet<PathBuf>,
     changed: Option<Instant>,
 }
 
@@ -38,7 +40,14 @@ impl Pending {
             .map(str::to_ascii_lowercase)
             .as_deref()
         {
-            Some("lua" | "json" | "tmj" | "tsj" | "ttf" | "otf") => self.scripts = true,
+            Some("lua") => self.scripts = true,
+            Some(
+                "json" | "scene" | "prefab" | "tmj" | "tsj" | "ttf" | "otf" | "wgsl" | "wav"
+                | "ogg",
+            ) => {
+                self.scripts = true;
+                self.resources.insert(path.to_owned());
+            }
             Some("png" | "jpg" | "jpeg") => {
                 if self.textures.len() < 4096 {
                     self.textures.insert(path.to_owned());
@@ -62,6 +71,7 @@ impl Pending {
         Some(Changes {
             scripts: std::mem::take(&mut self.scripts),
             textures: std::mem::take(&mut self.textures).into_iter().collect(),
+            resources: std::mem::take(&mut self.resources).into_iter().collect(),
         })
     }
 }
@@ -138,6 +148,10 @@ mod tests {
             now + Duration::from_millis(100),
         );
         pending.record(
+            Path::new("scenes/arena.scene"),
+            now + Duration::from_millis(100),
+        );
+        pending.record(
             Path::new("dist/game/main.lua"),
             now + Duration::from_millis(190),
         );
@@ -145,6 +159,7 @@ mod tests {
         let changes = pending.ready(now + Duration::from_millis(300)).unwrap();
         assert!(changes.scripts);
         assert_eq!(changes.textures, vec![PathBuf::from("assets/player.png")]);
+        assert_eq!(changes.resources, vec![PathBuf::from("scenes/arena.scene")]);
         assert!(pending.ready(now + Duration::from_secs(1)).is_none());
     }
 }

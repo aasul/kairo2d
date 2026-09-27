@@ -34,6 +34,13 @@ Nodes have names, types, file IDs, ordered children, local position/rotation/sca
 
 Scene files carry the ordered hierarchy, file IDs, transforms, tags, script paths, metadata, and node properties. The hierarchy is currently limited to 50,000 nodes and 256 levels. The active scene now turns supported node properties into native draw commands, Rapier bodies and audio playback. Call `node:setProperty(name, value)` from Lua to change an authored property at runtime; `node:removeProperty(name)` removes it.
 
+The [live inspector](live-inspector.md) can page through the active runtime
+hierarchy and edit explicitly exposed node fields. A field marked
+`persist=true` can be applied back to its authored `.scene` file after the
+editor verifies the source node and prior value. The [resource analyzer](resource-dependencies.md)
+reports known scene and prefab dependencies, broken references, and potential
+unused assets.
+
 ## Native scene properties
 
 The editor's inspector provides typed controls for the supported properties below. Other JSON properties remain available for scripts and prefabs. Nodes draw in hierarchy order after the scene's `draw` callback and before attached node `draw` callbacks. `graphics.clear` discards earlier commands, so put a scene background clear in the scene's `draw` callback.

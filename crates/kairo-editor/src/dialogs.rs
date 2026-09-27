@@ -13,7 +13,7 @@ use std::sync::OnceLock;
 pub(crate) enum FileOperation {
     NewFile,
     NewFolder,
-    Rename(PathBuf),
+    Rename { from: PathBuf, preview: Vec<String> },
     Duplicate(PathBuf),
     SaveCopy(usize),
 }
@@ -88,6 +88,12 @@ impl KairoApp {
                         ui.label("Project-relative path");
                         ui.add(egui::TextEdit::singleline(value).desired_width(400.0));
                         ui.small("Existing destinations are never overwritten.");
+                        if let FileOperation::Rename { preview, .. } = operation {
+                            ui.small(format!("{} known reference(s) will be updated:", preview.len()));
+                            for item in preview.iter().take(20) { ui.monospace(item); }
+                            if preview.len() > 20 { ui.small("Additional references omitted from preview."); }
+                            ui.small("Lua and relative tilemap references cannot be rewritten automatically; the move is refused when they may break.");
+                        }
                         if ui.button("Apply").clicked() {
                             result = (|| {
                                 let workspace = self.workspace.as_mut().ok_or_else(|| anyhow::anyhow!("no project is open"))?;
@@ -98,7 +104,7 @@ impl KairoApp {
                                         workspace.open_file(path)?;
                                     }
                                     FileOperation::NewFolder => workspace.files.create_directory(path)?,
-                                    FileOperation::Rename(from) => workspace.rename(from, &path)?,
+                                    FileOperation::Rename { from, .. } => workspace.rename(from, &path)?,
                                     FileOperation::Duplicate(from) => {
                                         ensure!(!workspace.tabs.iter().any(|tab| tab.path() == from.as_path() && tab.dirty()), "save this file before duplicating it");
                                         workspace.files.duplicate(from, path)?;

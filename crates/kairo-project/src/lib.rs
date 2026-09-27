@@ -1,4 +1,5 @@
 //! Project operations used by the CLI and desktop editor.
+pub mod dependencies;
 mod files;
 mod package;
 pub mod runtime;
