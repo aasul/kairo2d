@@ -999,8 +999,27 @@ impl KairoApp {
                 })
             }
             BrowserAction::Rename(path) => {
+                let graph = kairo_project::dependencies::DependencyGraph::scan(&workspace.files)?;
+                let preview = graph
+                    .references()
+                    .iter()
+                    .filter(|reference| {
+                        reference.target == path || reference.target.starts_with(&path)
+                    })
+                    .map(|reference| {
+                        format!(
+                            "{} {} → {}",
+                            reference.owner.display(),
+                            reference.field,
+                            reference.target.display()
+                        )
+                    })
+                    .collect();
                 self.dialog = Some(Dialog::File {
-                    operation: FileOperation::Rename(path.clone()),
+                    operation: FileOperation::Rename {
+                        from: path.clone(),
+                        preview,
+                    },
                     value: path.display().to_string(),
                 })
             }
