@@ -13,7 +13,7 @@ serde.workspace = true
 serde_json.workspace = true
 snow = "=0.10.0"
 getrandom.workspace = true
-sha2 = "0.10"
+sha2 = "0.11"
 tempfile.workspace = true
 
 [lints]
