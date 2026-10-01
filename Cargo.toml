@@ -50,7 +50,7 @@ image = { version = "=0.24.9", default-features = false, features = ["png", "jpe
 kira = { version = "=0.9.6", default-features = false, features = ["cpal", "wav", "ogg"] }
 log = "0.4"
 mlua = { version = "=0.10.3", features = ["lua54", "vendored", "error-send", "serialize"] }
-notify = "=7.0.0"
+notify = "=8.2.0"
 pollster = "0.3"
 rapier2d = "=0.22.0"
 serde = { version = "1.0", features = ["derive"] }
