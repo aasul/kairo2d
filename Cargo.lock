@@ -1915,6 +1915,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "glam"
+version = "0.33.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35b4e837a1d133645d1dcf283e146a4b9901e390a1c13545f959cfed3a72f24f"
+
+[[package]]
 name = "glob"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2529,7 +2535,7 @@ version = "3.5.0"
 dependencies = [
  "anyhow",
  "getrandom 0.3.4",
- "glam",
+ "glam 0.33.11",
  "rapier2d",
  "serde",
  "serde_json",
@@ -2545,7 +2551,7 @@ dependencies = [
  "anyhow",
  "eframe",
  "env_logger",
- "glam",
+ "glam 0.33.11",
  "image 0.24.9",
  "kairo-assets",
  "kairo-audio",
@@ -2580,7 +2586,7 @@ name = "kairo-lua"
 version = "3.5.0"
 dependencies = [
  "anyhow",
- "glam",
+ "glam 0.33.11",
  "kairo-assets",
  "kairo-audio",
  "kairo-core",
@@ -2618,7 +2624,7 @@ dependencies = [
  "egui",
  "egui-wgpu",
  "font8x8",
- "glam",
+ "glam 0.33.11",
  "kairo-assets",
  "kairo-core",
  "log",
@@ -2660,7 +2666,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fb5a9f9dff5e262540b628b00d5e1a772270a962d6869f8695bb24832ff3b394"
 dependencies = [
  "cpal",
- "glam",
+ "glam 0.29.3",
  "mint",
  "paste",
  "ringbuf",
