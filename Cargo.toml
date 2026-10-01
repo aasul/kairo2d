@@ -25,7 +25,7 @@ getrandom = "0.3"
 kairo-link = { path = "crates/kairo-link", version = "3.5.0" }
 kairo-replay = { path = "crates/kairo-replay", version = "3.5.0" }
 egui = "=0.28.1"
-egui-wgpu = { version = "=0.28.1", default-features = false }
+egui-wgpu = { version = "=0.36.2", default-features = false }
 fontdue = "=0.9.3"
 gilrs = "=0.11.0"
 directories = "=5.0.1"
